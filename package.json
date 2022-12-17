@@ -8,10 +8,14 @@
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "format-ts": "prettier --write \"src/**/*.ts\" --config \".prettierrc-ts.json\"",
-    "format-less": "prettier --write \"src/**/*.less\" --config \".prettierrc-less.json\"",
-    "format-html": "prettier --write \"src/**/*.html\" --config \".prettierrc-html.json\"",
-    "format": "npm run format-ts && npm run format-less && npm run format-html"
+    "prettier": "npm run prettier:ts && npm run prettier:less && npm run prettier:html",
+    "prettier:ts": "prettier --check \"src/**/*.ts\" --config \".prettierrc-ts.json\"",
+    "prettier:less": "prettier --check \"src/**/*.less\" --config \".prettierrc-less.json\"",
+    "prettier:html": "prettier --check \"src/**/*.html\" --config \".prettierrc-html.json\"",
+    "prettier:fix": "npm run prettier:ts:fix && npm run prettier:less:fix && npm run prettier:html:fix",
+    "prettier:ts:fix": "prettier --write \"src/**/*.ts\" --config \".prettierrc-ts.json\"",
+    "prettier:less:fix": "prettier --write \"src/**/*.less\" --config \".prettierrc-less.json\"",
+    "prettier:html:fix": "prettier --write \"src/**/*.html\" --config \".prettierrc-html.json\""
   },
   "private": true,
   "dependencies": {
