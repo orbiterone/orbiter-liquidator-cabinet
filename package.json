@@ -18,6 +18,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:production": "env-cmd -f .env.production react-scripts build",
     "prettier": "prettier --check src",
     "prettier:fix": "prettier --write --list-different src",
     "test": "react-scripts test",
