@@ -40,6 +40,10 @@ jobs:
             git pull origin ${{ github.ref_name }}
 
             export APP_PORT=${{ secrets.APP_PORT_DEV }}
+            export INSTANCE_TYPE=${{ secrets.INSTANCE_TYPE_DEV }}
+
+            rm -f .env.production
+            echo REACT_APP_NOT_SECRET_CODE=${{ secrets.REACT_APP_NOT_SECRET_CODE_DEV }} > .env.production
 
             export DOCKER_SCAN_SUGGEST=false
             docker compose -f docker-compose.prod.yml up -d --build

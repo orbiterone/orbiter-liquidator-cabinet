@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        INSTANCE_TYPE: ${INSTANCE_TYPE}
     restart: always
     ports:
       - '127.0.0.1:${APP_PORT:-80}:80'

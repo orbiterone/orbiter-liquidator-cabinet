@@ -12,15 +12,16 @@ COPY package*.json ./
 RUN npm ci
 
 COPY ./ .
-RUN npm run build:prod
+RUN npm run build:production
 
 # DEPLOY ENVIRONMENT
 FROM nginx:stable
 
-COPY --from=build /app/dist /usr/share/nginx/app/dist
-COPY --from=build /app/error.html /usr/share/nginx/app
+ARG INSTANCE_TYPE
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/build /usr/share/nginx/app
+
+COPY nginx.${INSTANCE_TYPE}.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 
