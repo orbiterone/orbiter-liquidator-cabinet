@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
-
+import TableOverview from 'src/components/TableOverview/tableOverview'
 const styles = createUseStyles({
   overviewBlock: {
     margin: '0 auto',
@@ -9,6 +9,7 @@ const styles = createUseStyles({
   overviewTitle: {
     color: 'black',
   },
+  overviewTableBlock: {},
 })
 
 const Overview = () => {
@@ -16,7 +17,10 @@ const Overview = () => {
 
   return (
     <div className={classes.overviewBlock}>
-      <div className={classes.overviewTitle}>Accounts</div>
+      <h1 className={classes.overviewTitle}>Orbiter One Liquidator</h1>
+      <div className={classes.overviewTableBlock}>
+        <TableOverview />
+      </div>
     </div>
   )
 }
