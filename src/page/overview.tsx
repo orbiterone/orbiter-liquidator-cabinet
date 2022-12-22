@@ -9,7 +9,9 @@ const styles = createUseStyles({
   overviewTitle: {
     color: 'black',
   },
-  overviewTableBlock: {},
+  overviewTableBlock: {
+    cursor: 'default',
+  },
 })
 
 const Overview = () => {
