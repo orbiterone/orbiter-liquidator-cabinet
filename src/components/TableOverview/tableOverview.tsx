@@ -1,61 +1,27 @@
 import React, { useEffect, useState } from 'react'
 import { Table, Button, Tag } from 'antd'
+import { createUseStyles } from 'react-jss'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import type { FilterValue, SorterResult } from 'antd/es/table/interface'
+import { classicNameResolver } from 'typescript'
 
-const columns = [
-  {
-    title: 'Borrower address',
-    dataIndex: 'address',
-    width: '30%',
-    ellipsis: true,
+const styles = createUseStyles({
+  addressLink: {
+    textDecorationLine: 'none',
+    cursor: 'pointer',
+    color: '#000000E0',
+    '&:active': {
+      textDecoration: 'none',
+    },
+    '&:hover': {
+      textDecorationLine: 'underline',
+      color: '#000000E0',
+    },
   },
-  {
-    title: 'Supply,$',
-    dataIndex: 'supply',
-    sorter: (a: any, b: any) => a.supply - b.supply,
-    defaultSortOrder: 'descend',
-    ellipsis: true,
+  tableText: {
+    cursor: 'default',
   },
-  {
-    title: 'Borrow,$',
-    dataIndex: 'borrow',
-    sorter: (a: any, b: any) => a.borrow - b.borrow,
-    ellipsis: true,
-  },
-  {
-    title: 'Health coefficient',
-    dataIndex: 'health',
-    sorter: (a: any, b: any) => a.health - b.health,
-    ellipsis: true,
-  },
-  {
-    title: 'State',
-    dataIndex: 'state',
-    width: '10%',
-    filters: [
-      { text: 'Safe', value: 'safe' },
-      { text: 'Unsafe', value: 'unsafe' },
-    ],
-    onFilter: (value: string, record: any) => record.state.indexOf(value) === 0,
-    render: (value: string, record: any) => (
-      <Tag color={record.state === 'safe' ? 'green' : 'red'}>
-        {record.state}
-      </Tag>
-    ),
-  },
-  {
-    title: 'Action',
-    key: 'action',
-    width: '10%',
-
-    render: () => (
-      <Button size="small" type="primary">
-        Inspect
-      </Button>
-    ),
-  },
-]
+})
 
 const data = [
   {
@@ -100,7 +66,7 @@ const data = [
   },
   {
     key: '6',
-    address: '0xdd9edbc0adb53b01e97aa0fadd0e7c21f467cad8',
+    address: '0x0da42477E781bf656e9967c4e87b057b0843d999',
     supply: '0.385835',
     borrow: '1.285835',
     health: '1.94642803232',
@@ -124,7 +90,7 @@ const data = [
   },
   {
     key: '9',
-    address: '0xdd9edbc0adb53b01e97aa0fadd0e7c21f467cad8',
+    address: '0x0da42477E781bf656e9967c4e87b057b0843d999',
     supply: '0.115835',
     borrow: '4.085835',
     health: '1.034342803232',
@@ -213,6 +179,81 @@ const data = [
 ]
 
 const TableOverview = () => {
+  const classes = styles()
+  const columns = [
+    {
+      title: 'Borrower address',
+      dataIndex: 'address',
+      width: '30%',
+      ellipsis: true,
+      render: (value: string) => (
+        <a
+          className={classes.addressLink}
+          href={`https://moonbase.moonscan.io/address/${value}`}
+          target="_blank"
+        >
+          {value}
+        </a>
+      ),
+    },
+    {
+      title: 'Supply,$',
+      dataIndex: 'supply',
+      sorter: (a: any, b: any) => a.supply - b.supply,
+      defaultSortOrder: 'descend',
+      ellipsis: true,
+      render: (value: string) => (
+        <span className={classes.tableText}>{value}</span>
+      ),
+    },
+    {
+      title: 'Borrow,$',
+      dataIndex: 'borrow',
+      sorter: (a: any, b: any) => a.borrow - b.borrow,
+      ellipsis: true,
+      render: (value: string) => (
+        <span className={classes.tableText}>{value}</span>
+      ),
+    },
+    {
+      title: 'Health coefficient',
+      dataIndex: 'health',
+      sorter: (a: any, b: any) => a.health - b.health,
+      ellipsis: true,
+      render: (value: string) => (
+        <span className={classes.tableText}>{value}</span>
+      ),
+    },
+    {
+      title: 'State',
+      dataIndex: 'state',
+      width: '10%',
+      filters: [
+        { text: 'Safe', value: 'safe' },
+        { text: 'Unsafe', value: 'unsafe' },
+      ],
+      onFilter: (value: string, record: any) =>
+        record.state.indexOf(value) === 0,
+      render: (value: string, record: any) => (
+        <span className={classes.tableText}>
+          <Tag color={record.state === 'safe' ? 'green' : 'red'}>
+            {record.state}
+          </Tag>
+        </span>
+      ),
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      width: '10%',
+
+      render: () => (
+        <Button size="small" type="primary">
+          Inspect
+        </Button>
+      ),
+    },
+  ]
   return (
     <Table
       columns={columns}
