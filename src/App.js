@@ -3,11 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Button, Result } from 'antd'
 import './App.css'
 import Overview from './page/overview'
+import Borrower from './page/borrower'
 
 function App() {
   return (
     <>
       <Routes>
+        <Route path="/borrower/:userAddress" element={<Borrower />} />
         <Route exact path="/" element={<Overview />} />
         <Route
           path="*"

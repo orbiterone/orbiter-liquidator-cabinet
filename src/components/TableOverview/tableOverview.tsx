@@ -1,61 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Table, Button, Tag } from 'antd'
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
-import type { FilterValue, SorterResult } from 'antd/es/table/interface'
-
-const columns = [
-  {
-    title: 'Borrower address',
-    dataIndex: 'address',
-    width: '30%',
-    ellipsis: true,
-  },
-  {
-    title: 'Supply,$',
-    dataIndex: 'supply',
-    sorter: (a: any, b: any) => a.supply - b.supply,
-    defaultSortOrder: 'descend',
-    ellipsis: true,
-  },
-  {
-    title: 'Borrow,$',
-    dataIndex: 'borrow',
-    sorter: (a: any, b: any) => a.borrow - b.borrow,
-    ellipsis: true,
-  },
-  {
-    title: 'Health coefficient',
-    dataIndex: 'health',
-    sorter: (a: any, b: any) => a.health - b.health,
-    ellipsis: true,
-  },
-  {
-    title: 'State',
-    dataIndex: 'state',
-    width: '10%',
-    filters: [
-      { text: 'Safe', value: 'safe' },
-      { text: 'Unsafe', value: 'unsafe' },
-    ],
-    onFilter: (value: string, record: any) => record.state.indexOf(value) === 0,
-    render: (value: string, record: any) => (
-      <Tag color={record.state === 'safe' ? 'green' : 'red'}>
-        {record.state}
-      </Tag>
-    ),
-  },
-  {
-    title: 'Action',
-    key: 'action',
-    width: '10%',
-
-    render: () => (
-      <Button size="small" type="primary">
-        Inspect
-      </Button>
-    ),
-  },
-]
+import { useNavigate } from 'react-router-dom'
 
 const data = [
   {
@@ -213,6 +158,68 @@ const data = [
 ]
 
 const TableOverview = () => {
+  const navigate = useNavigate()
+  const columns = [
+    {
+      title: 'Borrower address',
+      dataIndex: 'address',
+      width: '30%',
+      ellipsis: true,
+    },
+    {
+      title: 'Supply,$',
+      dataIndex: 'supply',
+      sorter: (a: any, b: any) => a.supply - b.supply,
+      defaultSortOrder: 'descend',
+      ellipsis: true,
+    },
+    {
+      title: 'Borrow,$',
+      dataIndex: 'borrow',
+      sorter: (a: any, b: any) => a.borrow - b.borrow,
+      ellipsis: true,
+    },
+    {
+      title: 'Health coefficient',
+      dataIndex: 'health',
+      sorter: (a: any, b: any) => a.health - b.health,
+      ellipsis: true,
+    },
+    {
+      title: 'State',
+      dataIndex: 'state',
+      width: '10%',
+      filters: [
+        { text: 'Safe', value: 'safe' },
+        { text: 'Unsafe', value: 'unsafe' },
+      ],
+      onFilter: (value: string, record: any) =>
+        record.state.indexOf(value) === 0,
+      render: (value: string, record: any) => (
+        <Tag color={record.state === 'safe' ? 'green' : 'red'}>
+          {record.state}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      width: '10%',
+
+      render: (value: any) => (
+        <Button
+          size="small"
+          type="primary"
+          onClick={() => {
+            navigate(`/borrower/${value.address}`)
+          }}
+        >
+          Inspect
+        </Button>
+      ),
+    },
+  ]
+
   return (
     <Table
       columns={columns}
