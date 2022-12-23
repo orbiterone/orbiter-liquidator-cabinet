@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Table, Button, Tag } from 'antd'
+import { useNavigate } from 'react-router-dom'
 import { createUseStyles } from 'react-jss'
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
-import type { FilterValue, SorterResult } from 'antd/es/table/interface'
-import { classicNameResolver } from 'typescript'
 
 const styles = createUseStyles({
   addressLink: {
@@ -180,6 +178,7 @@ const data = [
 
 const TableOverview = () => {
   const classes = styles()
+  const navigate = useNavigate()
   const columns = [
     {
       title: 'Borrower address',
@@ -247,8 +246,14 @@ const TableOverview = () => {
       key: 'action',
       width: '10%',
 
-      render: () => (
-        <Button size="small" type="primary">
+      render: (value: any) => (
+        <Button
+          size="small"
+          type="primary"
+          onClick={() => {
+            navigate(`/borrower/${value.address}`)
+          }}
+        >
           Inspect
         </Button>
       ),
