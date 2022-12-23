@@ -43,7 +43,8 @@ jobs:
             export INSTANCE_TYPE=${{ secrets.INSTANCE_TYPE_DEV }}
 
             rm -f .env.production
-            echo REACT_APP_NOT_SECRET_CODE=${{ secrets.REACT_APP_NOT_SECRET_CODE_DEV }} > .env.production
+            echo REACT_APP_X_ORBITER_LIQUIDATOR_API_KEY=${{ secrets.REACT_APP_X_ORBITER_LIQUIDATOR_API_KEY_DEV }} > .env.production
+            echo REACT_APP_X_ORBITER_LIQUIDATOR_API_URL=${{ secrets.REACT_APP_X_ORBITER_LIQUIDATOR_API_URL_DEV }} >> .env.production
 
             export DOCKER_SCAN_SUGGEST=false
             docker compose -f docker-compose.prod.yml up -d --build
