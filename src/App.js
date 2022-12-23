@@ -4,6 +4,9 @@ import { Button, Result } from 'antd'
 import './App.css'
 import Overview from './page/overview'
 import Borrower from './page/borrower'
+import Web3 from 'web3'
+import Web3Modal from 'web3modal'
+import WalletConnectProvider from '@walletconnect/web3-provider'
 
 function App() {
   return (
