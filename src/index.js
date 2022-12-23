@@ -7,17 +7,20 @@ import { Provider } from 'react-redux'
 import { Router } from 'react-router'
 import { BrowserRouter } from 'react-router-dom'
 import { createBrowserHistory } from 'history'
+import { store } from './redux/store'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 export const history = createBrowserHistory()
 
 root.render(
   <>
-    <React.StrictMode>
-      <BrowserRouter history={history}>
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>
+    <Provider store={store}>
+      <React.StrictMode>
+        <BrowserRouter history={history}>
+          <App />
+        </BrowserRouter>
+      </React.StrictMode>
+    </Provider>
   </>
 )
 
