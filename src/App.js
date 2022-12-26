@@ -7,9 +7,10 @@ import Borrower from './page/borrower'
 import Web3 from 'web3'
 import Web3Modal from 'web3modal'
 import WalletConnectProvider from '@walletconnect/web3-provider'
+import NotConnected from "./page/NotConnected";
 
 
-const CHAIN_ID = 1
+const CHAIN_ID = +process.env.REACT_APP_X_ORBITER_CHAIN_ID
 
 const WalletType = {
   metamask: 'metamask',
@@ -25,11 +26,18 @@ let web3 = Web3
 
 function App() {
 
-  const [user, setUser] = useState()
+  const [user, setUser] = useState({
+    address: null,
+    addressShort: null,
+    chainId: null,
+    connected: false,
+  })
 
-  useEffect(()=> {
+  useEffect(() => {
     connectWallet('metamask')
   }, [])
+
+  console.log(user)
 
   const createProviderMetamask = async (force = true) => {
     return new Promise(async (resolve, reject) => {
@@ -69,7 +77,7 @@ function App() {
           await getWalletData(WalletType.metamask)
         })
         provider[WalletType.metamask].on('chainChanged', (chainId) => {
-        setUser({ chainId: web3.utils.hexToNumber(chainId) })
+        setUser((user) => ({...user, chainId: web3.utils.hexToNumber(chainId) }))
         })
 
         provider[WalletType.metamask].on('disconnect', () => {
@@ -159,7 +167,6 @@ function App() {
     })
   }
 
-  console.log(user)
 
   const getWalletData = async (walletType) => {
     const [wallet] = await web3.eth.getAccounts()
@@ -275,11 +282,19 @@ function App() {
     }
   }
 
+  const handleConnectWallet = (type) => {
+    connectWallet(type).then(() => {
+      if (user.chainId !== CHAIN_ID) {
+        switchNetwork()
+      }
+   })
+  }
 
 
   return (
     <>
-      <Routes>
+      { user.address && user.chainId === CHAIN_ID ?
+          <Routes>
         <Route path="/borrower/:userAddress" element={<Borrower />} />
         <Route exact path="/" element={<Overview />} />
         <Route
@@ -297,7 +312,8 @@ function App() {
             />
           }
         />
-      </Routes>
+      </Routes> : <NotConnected connectWallet={handleConnectWallet} chainId={user.chainId} switchNetwork={switchNetwork} />
+      }
     </>
   )
 }
