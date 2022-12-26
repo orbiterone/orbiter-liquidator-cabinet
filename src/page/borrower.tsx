@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { useParams } from 'react-router-dom'
-import { Table, Button, Slider, Tag } from 'antd'
+import { Table, Button, Slider, Tag, Tooltip } from 'antd'
 import { CopyOutlined, CheckOutlined } from '@ant-design/icons'
 import { request } from '../factory/axios'
 import { useDispatch, useSelector } from 'react-redux'
@@ -88,6 +88,11 @@ const Borrower = () => {
       title: 'Supplied',
       dataIndex: 'supplied',
       key: 'supplied',
+      render: (value: string) => (
+        <Tooltip title={value}>
+          <span>{transform(value)}</span>
+        </Tooltip>
+      ),
     },
     {
       title: '',
@@ -126,6 +131,11 @@ const Borrower = () => {
       title: 'Borrowed',
       dataIndex: 'supplied',
       key: 'supplied',
+      render: (value: string) => (
+        <Tooltip title={value}>
+          <span>{transform(value)}</span>
+        </Tooltip>
+      ),
     },
     {
       title: '',
