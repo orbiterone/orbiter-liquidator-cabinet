@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { store } from '../redux/store'
 
 // @ts-ignore
 axios.defaults.headers['x-orbiter-api-key'] =
