@@ -5,7 +5,7 @@ import { createUseStyles } from 'react-jss'
 import { useDispatch, useSelector } from 'react-redux'
 import { request } from '../../factory/axios'
 import { setOverview } from 'src/redux/overview'
-import type {  TablePaginationConfig } from 'antd/es/table'
+import type { TablePaginationConfig } from 'antd/es/table'
 import { transform } from '../../factory/bigNumber'
 
 interface TableParams {

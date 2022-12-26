@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { useParams } from 'react-router-dom'
 import { Table, Button, Slider, Tag } from 'antd'
 import { CopyOutlined, CheckOutlined } from '@ant-design/icons'
-import {request} from "../factory/axios";
-import {useDispatch, useSelector} from "react-redux";
-import {setUserAssets} from "../redux/userAssets";
-import {transform} from "../factory/bigNumber";
+import { request } from '../factory/axios'
+import { useDispatch, useSelector } from 'react-redux'
+import { setUserAssets } from '../redux/userAssets'
+import { transform } from '../factory/bigNumber'
 const styles = createUseStyles({
   overviewBlock: {
     margin: '0 auto',
@@ -43,13 +43,14 @@ const styles = createUseStyles({
 })
 
 const Borrower = () => {
-  const [healse, setHealse] = useState({coefficient: null, percentage: null})
+  const [healse, setHealse] = useState({ coefficient: null, percentage: null })
   const [coped, setCoped] = useState(false)
 
-  const { supplied, borrowed } = useSelector((state: any) => state.userAssetsReducer)
+  const { supplied, borrowed } = useSelector(
+    (state: any) => state.userAssetsReducer
+  )
   const { userAddress } = useParams()
   const dispatch = useDispatch()
-
 
   useEffect(() => {
     request({
@@ -75,7 +76,10 @@ const Borrower = () => {
       dataIndex: 'address',
       key: 'address',
       render: (text: string) => (
-        <a target="_blank" href={`https://moonbase.moonscan.io/address/${text}`}>
+        <a
+          target="_blank"
+          href={`https://moonbase.moonscan.io/address/${text}`}
+        >
           {text}
         </a>
       ),
@@ -91,7 +95,11 @@ const Borrower = () => {
       width: '10%',
 
       render: (value: any) => (
-         <input type='radio' name='tableRadio' onChange={()=> console.log(value)}/>
+        <input
+          type="radio"
+          name="tableRadio"
+          onChange={() => console.log(value)}
+        />
       ),
     },
   ]
@@ -106,7 +114,10 @@ const Borrower = () => {
       dataIndex: 'address',
       key: 'address',
       render: (text: string) => (
-        <a target="_blank" href={`https://moonbase.moonscan.io/address/${text}`}>
+        <a
+          target="_blank"
+          href={`https://moonbase.moonscan.io/address/${text}`}
+        >
           {text}
         </a>
       ),
@@ -176,13 +187,13 @@ const Borrower = () => {
         <div>State status:</div>
         <div>
           <Tag
-              color={
-                calcState() === 'safe'
-                    ? 'green'
-                    : calcState() === 'unsafe'
-                        ? 'red'
-                        : 'orange'
-              }
+            color={
+              calcState() === 'safe'
+                ? 'green'
+                : calcState() === 'unsafe'
+                ? 'red'
+                : 'orange'
+            }
           >
             {calcState()}
           </Tag>
@@ -196,7 +207,11 @@ const Borrower = () => {
         Choose a different asset to repay on behalf of borrower to return their
         Account Liquidity to 0:
       </div>
-      <Table columns={columnsBorrowed} pagination={false} dataSource={borrowed} />
+      <Table
+        columns={columnsBorrowed}
+        pagination={false}
+        dataSource={borrowed}
+      />
       <div className={classes.bottomMenuWrapper}>
         <Slider max={33} tooltip={{ formatter }} style={{ width: 300 }} />
         <Button size="middle" type="primary" onClick={() => console.log(1)}>
