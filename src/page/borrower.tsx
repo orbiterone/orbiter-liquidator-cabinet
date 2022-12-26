@@ -200,7 +200,7 @@ const Borrower = () => {
         </div>
       </div>
       <div className={classes.blockWrapper}>
-        Choose an asset to collect at "get from the backend" discount:
+        Choose an asset to collect at 10% discount:
       </div>
       <Table columns={columns} pagination={false} dataSource={supplied} />
       <div className={classes.blockWrapper}>
