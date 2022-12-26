@@ -7,8 +7,7 @@ import Borrower from './page/borrower'
 import Web3 from 'web3'
 import Web3Modal from 'web3modal'
 import WalletConnectProvider from '@walletconnect/web3-provider'
-import NotConnected from "./page/NotConnected";
-
+import NotConnected from './page/NotConnected'
 
 const CHAIN_ID = +process.env.REACT_APP_X_ORBITER_CHAIN_ID
 
@@ -25,7 +24,6 @@ let provider = {
 let web3 = Web3
 
 function App() {
-
   const [user, setUser] = useState({
     address: null,
     addressShort: null,
@@ -77,7 +75,10 @@ function App() {
           await getWalletData(WalletType.metamask)
         })
         provider[WalletType.metamask].on('chainChanged', (chainId) => {
-        setUser((user) => ({...user, chainId: web3.utils.hexToNumber(chainId) }))
+          setUser((user) => ({
+            ...user,
+            chainId: web3.utils.hexToNumber(chainId),
+          }))
         })
 
         provider[WalletType.metamask].on('disconnect', () => {
@@ -167,7 +168,6 @@ function App() {
     })
   }
 
-
   const getWalletData = async (walletType) => {
     const [wallet] = await web3.eth.getAccounts()
     if (!wallet) {
@@ -185,14 +185,13 @@ function App() {
     setWalletType(walletType)
 
     // Set Wallet address
-      setUser({
-        address: wallet,
-        addressShort: `${wallet.substr(0, 5)}...${wallet.substr(
-          wallet.length - 4
-        )}`,
-        chainId,
-      }
-    )
+    setUser({
+      address: wallet,
+      addressShort: `${wallet.substr(0, 5)}...${wallet.substr(
+        wallet.length - 4
+      )}`,
+      chainId,
+    })
 
     return true
   }
@@ -237,13 +236,12 @@ function App() {
     localStorage.removeItem('walletconnect')
 
     // Reset Wallet address
-      setUser({
-        address: null,
-        addressShort: null,
-        chainId: null,
-        connected: false,
-      }
-    )
+    setUser({
+      address: null,
+      addressShort: null,
+      chainId: null,
+      connected: false,
+    })
 
     return true
   }
@@ -287,33 +285,38 @@ function App() {
       if (user.chainId !== CHAIN_ID) {
         switchNetwork()
       }
-   })
+    })
   }
-
 
   return (
     <>
-      { user.address && user.chainId === CHAIN_ID ?
-          <Routes>
-        <Route path="/borrower/:userAddress" element={<Borrower />} />
-        <Route exact path="/" element={<Overview />} />
-        <Route
-          path="*"
-          element={
-            <Result
-              status="404"
-              title="404"
-              subTitle="Sorry, the page you visited does not exist."
-              extra={
-                <Button href="/" type="primary">
-                  Back Home
-                </Button>
-              }
-            />
-          }
+      {user.address && user.chainId === CHAIN_ID ? (
+        <Routes>
+          <Route path="/borrower/:userAddress" element={<Borrower />} />
+          <Route exact path="/" element={<Overview />} />
+          <Route
+            path="*"
+            element={
+              <Result
+                status="404"
+                title="404"
+                subTitle="Sorry, the page you visited does not exist."
+                extra={
+                  <Button href="/" type="primary">
+                    Back Home
+                  </Button>
+                }
+              />
+            }
+          />
+        </Routes>
+      ) : (
+        <NotConnected
+          connectWallet={handleConnectWallet}
+          chainId={user.chainId}
+          switchNetwork={switchNetwork}
         />
-      </Routes> : <NotConnected connectWallet={handleConnectWallet} chainId={user.chainId} switchNetwork={switchNetwork} />
-      }
+      )}
     </>
   )
 }
