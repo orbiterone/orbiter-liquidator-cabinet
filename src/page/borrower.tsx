@@ -1,9 +1,16 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { useParams } from 'react-router-dom'
-import { Table } from 'antd/lib'
-import { Button, Slider, Tag } from 'antd'
+import { Table, Button, Slider, Tag, Tooltip } from 'antd'
+import { fromBn, toBn } from 'evm-bn'
+import erc20Abi from '../contracts/erc20Abi.abi'
+import cEthAbi from '../contracts/cEthAbi.abi'
+import cErcAbi from '../contracts/cErcAbi.abi'
 import { CopyOutlined, CheckOutlined } from '@ant-design/icons'
+import { request } from '../factory/axios'
+import { useDispatch, useSelector } from 'react-redux'
+import { setUserAssets } from '../redux/userAssets'
+import { transform } from '../factory/bigNumber'
 const styles = createUseStyles({
   overviewBlock: {
     margin: '0 auto',
@@ -39,47 +46,31 @@ const styles = createUseStyles({
   },
 })
 
-const Borrower = () => {
-  const classes = styles()
+const Borrower = ({user, web3}: any) => {
+  const [healse, setHealse] = useState({ coefficient: null, percentage: null })
+  const [coped, setCoped] = useState(false)
+  const [tokenContract, setTokenContract] = useState(null)
+  const [marketContract, setMarketContract] = useState(null)
+  const [isMainToken, setIsMainToken] = useState(false)
+
+  const { supplied, borrowed } = useSelector(
+    (state: any) => state.userAssetsReducer
+  )
   const { userAddress } = useParams()
-  const data = [
-    {
-      key: '1',
-      symbol: 'cETH',
-      address: '0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5',
-      supplied: '0',
-    },
-    {
-      key: '2',
-      symbol: 'cDAI',
-      address: '0xf5dce57282a584d2746faf1593d3121fcac444dc',
-      supplied: '0',
-    },
-    {
-      key: '3',
-      symbol: 'cUSDC',
-      address: '0x39aa39c021dfbae8fac545936693ac917d5e7563',
-      supplied: '0',
-    },
-    {
-      key: '4',
-      symbol: 'cBAT',
-      address: '0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e',
-      supplied: '0',
-    },
-    {
-      key: '5',
-      symbol: 'cREP',
-      address: '0x158079ee67fce2f58472a96584a73c7ab9ac95c1',
-      supplied: '0',
-    },
-    {
-      key: '6',
-      symbol: 'cZRX',
-      address: '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407',
-      supplied: '0',
-    },
-  ]
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    request({
+      method: 'get',
+      path: `assets/${userAddress}`,
+    }).then((res) => dispatch(setUserAssets(res.data.data)))
+    request({
+      method: 'get',
+      path: `users/${userAddress}`,
+    }).then((res) => setHealse(res.data.data.positionHealth))
+  }, [])
+
+  const classes = styles()
 
   const columns = [
     {
@@ -92,7 +83,10 @@ const Borrower = () => {
       dataIndex: 'address',
       key: 'address',
       render: (text: string) => (
-        <a target="_blank" href={`https://etherscan.io/address/${text}`}>
+        <a
+          target="_blank"
+          href={`https://moonbase.moonscan.io/address/${text}`}
+        >
           {text}
         </a>
       ),
@@ -101,6 +95,11 @@ const Borrower = () => {
       title: 'Supplied',
       dataIndex: 'supplied',
       key: 'supplied',
+      render: (value: string) => (
+        <Tooltip title={value}>
+          <span>{transform(value)}</span>
+        </Tooltip>
+      ),
     },
     {
       title: '',
@@ -108,9 +107,11 @@ const Borrower = () => {
       width: '10%',
 
       render: (value: any) => (
-        <Button size="small" type="primary" onClick={() => console.log(value)}>
-          Approve
-        </Button>
+        <input
+          type="radio"
+          name="tableRadio"
+          onChange={() => console.log(value)}
+        />
       ),
     },
   ]
@@ -125,7 +126,10 @@ const Borrower = () => {
       dataIndex: 'address',
       key: 'address',
       render: (text: string) => (
-        <a target="_blank" href={`https://etherscan.io/address/${text}`}>
+        <a
+          target="_blank"
+          href={`https://moonbase.moonscan.io/address/${text}`}
+        >
           {text}
         </a>
       ),
@@ -134,6 +138,11 @@ const Borrower = () => {
       title: 'Borrowed',
       dataIndex: 'supplied',
       key: 'supplied',
+      render: (value: string) => (
+        <Tooltip title={value}>
+          <span>{transform(value)}</span>
+        </Tooltip>
+      ),
     },
     {
       title: '',
@@ -148,15 +157,60 @@ const Borrower = () => {
     },
   ]
   const formatter = (value: number) => `${value}%`
-  const [coped, setCoped] = useState(false)
 
   const handleCopy = () => {
     setCoped(true)
-    navigator.clipboard.writeText(userAddress)
+    navigator.clipboard.writeText(userAddress ?? '')
     setTimeout(() => {
       setCoped(false)
     }, 2000)
   }
+
+  const calcState = (item = healse.coefficient) => {
+    let state = ''
+
+    let health = item
+    if (health < 1) {
+      state = 'unsafe'
+    } else if (health <= 1.05) {
+      state = 'risky'
+    } else {
+      state = 'safe'
+    }
+    return state
+  }
+
+  const defineContracts = async (asset, isMainToken) => {
+    const tokenContract = new web3.eth.Contract(erc20Abi, asset.tokenAddress)
+    setTokenContract(tokenContract)
+
+    const marketContract = new web3.eth.Contract(
+        isMainToken ? cEthAbi : cErcAbi,
+        asset.oTokenAddress
+    )
+    setMarketContract(marketContract)
+  }
+
+  const approve = async (asset: any) => {
+    try {
+      const result = await tokenContract.methods
+          .approve(
+              asset.oTokenAddress,
+              toBn(`${asset.value}`, asset.tokenDecimal).toString()
+          )
+          .send({ from: user.address })
+
+      console.log('approve:', result)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const heandleApprove = (token) => {
+    defineContracts(token, !token.address)
+    approve(token)
+  }
+
 
   return (
     <div className={classes.overviewBlock}>
@@ -173,26 +227,40 @@ const Borrower = () => {
       <div className={classes.textWrapper}>
         <div>Position Health:</div>
         <div className={classes.positionWrapper}>
-          <div>1</div>
+          <div>{transform(healse.coefficient, 2)}</div>
           <div className={classes.hr}></div>
-          <div>100%</div>
+          <div>{transform(healse.percentage, 2)}%</div>
         </div>
       </div>
       <div className={classes.textWrapper}>
         <div>State status:</div>
         <div>
-          <Tag color={'green'}>Safe</Tag>
+          <Tag
+            color={
+              calcState() === 'safe'
+                ? 'green'
+                : calcState() === 'unsafe'
+                ? 'red'
+                : 'orange'
+            }
+          >
+            {calcState()}
+          </Tag>
         </div>
       </div>
       <div className={classes.blockWrapper}>
-        Choose an asset to collect at "get from the backend" discount:
+        Choose an asset to collect at 10% discount:
       </div>
-      <Table columns={columns} pagination={false} dataSource={data} />
+      <Table columns={columns} pagination={false} dataSource={supplied} />
       <div className={classes.blockWrapper}>
         Choose a different asset to repay on behalf of borrower to return their
         Account Liquidity to 0:
       </div>
-      <Table columns={columnsBorrowed} pagination={false} dataSource={data} />
+      <Table
+        columns={columnsBorrowed}
+        pagination={false}
+        dataSource={borrowed}
+      />
       <div className={classes.bottomMenuWrapper}>
         <Slider max={33} tooltip={{ formatter }} style={{ width: 300 }} />
         <Button size="middle" type="primary" onClick={() => console.log(1)}>
