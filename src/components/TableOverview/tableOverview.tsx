@@ -5,7 +5,7 @@ import { createUseStyles } from 'react-jss'
 import { useDispatch, useSelector } from 'react-redux'
 import { request } from '../../factory/axios'
 import { setOverview } from 'src/redux/overview'
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import type { TablePaginationConfig } from 'antd/es/table'
 import { transform } from '../../factory/bigNumber'
 
 interface TableParams {
@@ -46,9 +46,9 @@ const TableOverview = () => {
   useEffect(() => {
     request({
       method: 'get',
-      path: `users?page=${tableParams.pagination.current}`,
+      path: `users?page=${tableParams.pagination?.current}`,
     }).then((res) => dispatch(setOverview(res.data.data)))
-  }, [tableParams.pagination.current])
+  }, [tableParams.pagination?.current])
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
     setTableParams({
@@ -164,6 +164,7 @@ const TableOverview = () => {
 
   return (
     <Table
+      // @ts-ignore
       columns={columns}
       dataSource={overview.entities}
       pagination={{
