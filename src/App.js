@@ -35,8 +35,6 @@ function App() {
     connectWallet('metamask')
   }, [])
 
-  console.log(user)
-
   const createProviderMetamask = async (force = true) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -292,7 +290,10 @@ function App() {
     <>
       {user.address && user.chainId === CHAIN_ID ? (
         <Routes>
-          <Route path="/borrower/:userAddress" element={<Borrower />} />
+          <Route
+            path="/borrower/:userAddress"
+            element={<Borrower web3={web3} user={user} />}
+          />
           <Route exact path="/" element={<Overview />} />
           <Route
             path="*"

@@ -50,6 +50,8 @@ export const userAssetsSlice = createSlice({
           symbol: item.token.symbol,
           address: item.token.tokenAddress,
           supplied: item.value,
+          suppliedUSD: item.token.lastPrice * item.value,
+          item,
         }
       })
       state.borrowed = action.payload.borrowed.map((item) => {
@@ -57,7 +59,9 @@ export const userAssetsSlice = createSlice({
           key: item.token._id,
           symbol: item.token.symbol,
           address: item.token.tokenAddress,
-          supplied: item.value,
+          borrowed: item.value,
+          borrowedUSD: item.token.lastPrice * item.value,
+          item,
         }
       })
     },

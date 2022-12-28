@@ -22,18 +22,8 @@ const NotConnected: React.FC<Props> = ({
   chainId,
 }) => {
   const classes = styles()
-  console.log(CHAIN_ID, chainId)
   return (
     <div className={classes.button}>
-      {/*{chainId !== CHAIN_ID ?*/}
-      {/*    <Button*/}
-      {/*        size="large"*/}
-      {/*        type="primary"*/}
-      {/*        onClick={() => {*/}
-      {/*            console.log(1)*/}
-      {/*            switchNetwork()*/}
-      {/*        }}*/}
-      {/*    >Switch Network</Button> :*/}
       <Button
         size="large"
         type="primary"
@@ -43,7 +33,6 @@ const NotConnected: React.FC<Props> = ({
       >
         Connect Wallet
       </Button>
-      {/*}*/}
     </div>
   )
 }
