@@ -52,12 +52,14 @@ const styles = createUseStyles({
     alignItems: 'start',
   },
   bottomMenuInfo: {
+    fontSize: '14px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 10,
   },
   bottomMenuInfoUSD: {
+    fontSize: '14px',
     display: 'flex',
     justifyContent: 'end',
     alignItems: 'center',
@@ -73,7 +75,7 @@ const Borrower = ({ user, web3 }: any) => {
   const [tokenBalance, setTokenBalance] = useState<any>(null)
   const [suppliedToken, setSuppliedToken] = useState<any>(null)
   const [borrowedToken, setBorrowedToken] = useState<any>(null)
-  const [totalBorrow, setTotalBorrow] = useState<any>(null)
+  const [locked, setLocked] = useState<any>(null)
   const [inputValue, setInputValue] = useState<any>('')
 
   const disable = !!suppliedToken && !!borrowedToken
@@ -111,7 +113,6 @@ const Borrower = ({ user, web3 }: any) => {
       method: 'get',
       path: `users/${userAddress}`,
     }).then((res) => {
-      setTotalBorrow(res.data.data.totalBorrowed)
       setHealse(res.data.data.positionHealth)
     })
   }, [])
@@ -168,6 +169,7 @@ const Borrower = ({ user, web3 }: any) => {
 
       render: (value: any) => (
         <input
+          disabled={!locked}
           type="radio"
           name="suppliedRadio"
           onChange={() => heandleSuppliedApprove(value.item)}
@@ -222,6 +224,7 @@ const Borrower = ({ user, web3 }: any) => {
       render: (value: any) => {
         return (
           <input
+            disabled={!locked}
             type="radio"
             name="borrowedRadio"
             onChange={() => heandleBorrowedApprove(value.item)}
@@ -244,16 +247,19 @@ const Borrower = ({ user, web3 }: any) => {
 
     let health = item
     if (health < 1) {
+      setLocked(false)
       state = 'unsafe'
     } else if (health <= 1.05) {
       state = 'risky'
+      setLocked(true)
     } else {
+      setLocked(true)
       state = 'safe'
     }
     return state
   }
 
-  const defineContracts = async (asset, isMainToken) => {
+  const defineContracts = async (asset: any, isMainToken: any) => {
     const tokenContract = new web3.eth.Contract(
       erc20Abi,
       asset.token.tokenAddress
@@ -321,7 +327,6 @@ const Borrower = ({ user, web3 }: any) => {
         method: 'get',
         path: `users/${userAddress}`,
       }).then((res) => {
-        setTotalBorrow(res.data.data.totalBorrowed)
         setHealse(res.data.data.positionHealth)
       })
 
@@ -331,7 +336,11 @@ const Borrower = ({ user, web3 }: any) => {
     }
   }
 
-  const getTokenBalance = async (tokenContract, asset, isMainToken) => {
+  const getTokenBalance = async (
+    tokenContract: any,
+    asset: any,
+    isMainToken: any
+  ) => {
     try {
       let result
 
@@ -347,7 +356,7 @@ const Borrower = ({ user, web3 }: any) => {
     }
   }
 
-  const heandleBorrowedApprove = async (value) => {
+  const heandleBorrowedApprove = async (value: any) => {
     const { tokenContract, marketContract } = await defineContracts(
       value,
       !value.token.tokenAddress
@@ -356,7 +365,7 @@ const Borrower = ({ user, web3 }: any) => {
     setBorrowedToken(value)
   }
 
-  const heandleSuppliedApprove = async (value) => {
+  const heandleSuppliedApprove = async (value: any) => {
     setSuppliedToken(value)
   }
 
