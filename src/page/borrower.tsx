@@ -11,7 +11,6 @@ import { request } from '../factory/axios'
 import { useDispatch, useSelector } from 'react-redux'
 import { setUserAssets } from '../redux/userAssets'
 import { transform } from '../factory/bigNumber'
-import BigNumber from 'bignumber.js'
 import Input from 'antd/es/input/Input'
 import { commify } from '../utils'
 const styles = createUseStyles({
@@ -49,22 +48,37 @@ const styles = createUseStyles({
   },
   repayButton: {
     display: 'flex',
+    justifyContent: 'start',
+    alignItems: 'start',
+  },
+  bottomMenuInfo: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 10,
+  },
+  bottomMenuInfoUSD: {
+    display: 'flex',
     justifyContent: 'end',
-    alignItems: 'end',
+    alignItems: 'center',
   },
 })
 
 const Borrower = ({ user, web3 }: any) => {
-  const [healse, setHealse] = useState({ coefficient: null, percentage: null })
-  const [coped, setCoped] = useState(false)
-  const [tokenBalance, setTokenBalance] = useState(null)
-  const [suppliedToken, setSuppliedToken] = useState(null)
-  const [borrowedToken, setBorrowedToken] = useState(null)
-  const [totalBorrow, setTotalBorrow] = useState(null)
-  const [inputValue, setInputValue] = useState('')
+  const [healse, setHealse] = useState<any>({
+    coefficient: null,
+    percentage: null,
+  })
+  const [coped, setCoped] = useState<any>(false)
+  const [tokenBalance, setTokenBalance] = useState<any>(null)
+  const [suppliedToken, setSuppliedToken] = useState<any>(null)
+  const [borrowedToken, setBorrowedToken] = useState<any>(null)
+  const [totalBorrow, setTotalBorrow] = useState<any>(null)
+  const [inputValue, setInputValue] = useState<any>('')
 
   const disable = !!suppliedToken && !!borrowedToken
 
+  // @ts-ignore
   const zeroInInput = !(inputValue.replace(/[\s,]/g, '') == 0)
 
   const disableRepayButton =
@@ -72,12 +86,12 @@ const Borrower = ({ user, web3 }: any) => {
 
   const closeFactor = 0.33
 
-  const maxToRepayUSD = totalBorrow * closeFactor
+  const maxToRepayUSD = totalBorrow && totalBorrow * closeFactor
 
-  const maxSuppliedUsd = suppliedToken?.token.lastPrice * suppliedToken?.value
+  const maxBorrowedUsd = suppliedToken?.token.lastPrice * suppliedToken?.value
 
   const maxToRepay = () => {
-    return maxSuppliedUsd > maxToRepayUSD ? maxToRepayUSD : maxSuppliedUsd
+    return maxBorrowedUsd > maxToRepayUSD ? maxToRepayUSD : maxBorrowedUsd
   }
 
   const { supplied, borrowed } = useSelector(
@@ -100,6 +114,10 @@ const Borrower = ({ user, web3 }: any) => {
       setHealse(res.data.data.positionHealth)
     })
   }, [])
+
+  useEffect(() => {
+    setInputValue('')
+  }, [suppliedToken, borrowedToken])
 
   const classes = styles()
 
@@ -211,7 +229,6 @@ const Borrower = ({ user, web3 }: any) => {
       },
     },
   ]
-  const formatter = (value: number) => `${value}null%`
 
   const handleCopy = () => {
     setCoped(true)
@@ -240,13 +257,12 @@ const Borrower = ({ user, web3 }: any) => {
       erc20Abi,
       asset.token.tokenAddress
     )
-    // setTokenContract(tokenContract)
 
     const marketContract = new web3.eth.Contract(
       isMainToken ? cEthAbi : cErcAbi,
-      asset.oTokenAddress
+      asset.token.oTokenAddress
     )
-    // setMarketContract(marketContract)
+
     return {
       tokenContract,
       marketContract,
@@ -268,27 +284,59 @@ const Borrower = ({ user, web3 }: any) => {
     }
   }
 
-  const liquidateBorrow = async (asset: any, tokenContract) => {
+  const liquidateBorrow = async (
+    asset: any,
+    value: any,
+    tokenContract: any
+  ) => {
+    let result
     try {
-      const result = await tokenContract.methods
-        .liquidateBorrow(
-          asset.token.oTokenAddress,
-          toBn(`${asset.value}`, asset.token.tokenDecimal).toString()
-        )
-        .send({
-          from: user.address,
-        })
+      if (!asset.token.oTokenAddress) {
+        result = await tokenContract.methods
+          .liquidateBorrow(userAddress, asset.token.oTokenAddress)
+          .send({
+            from: user.address,
+            value: toBn(`${value}`, asset.token.tokenDecimal).toString(),
+          })
+      } else {
+        result = await tokenContract.methods
+          .liquidateBorrow(
+            userAddress,
+            toBn(`${value}`, asset.token.tokenDecimal).toString(),
+            asset.token.oTokenAddress
+          )
+          .send({
+            from: user.address,
+          })
+      }
 
-      console.log('approve:', result)
+      request({
+        method: 'get',
+        path: `assets/${userAddress}`,
+      }).then((res) => dispatch(setUserAssets(res.data.data)))
+      request({
+        method: 'get',
+        path: `users/${userAddress}`,
+      }).then((res) => {
+        setTotalBorrow(res.data.data.totalBorrowed)
+        setHealse(res.data.data.positionHealth)
+      })
+
+      console.log('liquidate:', result)
     } catch (error) {
       console.log(error)
     }
   }
 
-  const getTokenBalance = async (tokenContract, asset) => {
+  const getTokenBalance = async (tokenContract, asset, isMainToken) => {
     try {
       let result
-      result = await tokenContract.methods.balanceOf(user.address).call()
+
+      if (isMainToken) {
+        result = await web3.eth.getBalance(user.address)
+      } else {
+        result = await tokenContract.methods.balanceOf(user.address).call()
+      }
 
       setTokenBalance(fromBn(result, asset.token.tokenDecimal).toString())
     } catch (error) {
@@ -301,7 +349,7 @@ const Borrower = ({ user, web3 }: any) => {
       value,
       !value.token.tokenAddress
     )
-    getTokenBalance(tokenContract, value)
+    getTokenBalance(tokenContract, value, !value.token.tokenAddress)
     setBorrowedToken(value)
   }
 
@@ -312,16 +360,24 @@ const Borrower = ({ user, web3 }: any) => {
   const heandleRepay = async () => {
     const value = inputValue.replace(/[\s,]/g, '')
     const asset = borrowedToken
+    const supplyedAsset = suppliedToken
     const { tokenContract, marketContract } = await defineContracts(
       asset,
       !asset.token.tokenAddress
     )
-    await approve(asset, value, tokenContract)
+    if (asset.token.tokenAddress) {
+      await approve(asset, value, tokenContract)
+    }
+
+    await liquidateBorrow(supplyedAsset, value, marketContract)
   }
 
   const setMaxInInput = () => {
+    const balanceInUSD = tokenBalance * borrowedToken?.token.lastPrice
+    const maxToInput = maxToRepay() > balanceInUSD ? balanceInUSD : maxToRepay()
+
     setInputValue(
-      commify((maxToRepay() / borrowedToken?.token.lastPrice).toString())
+      commify((maxToInput / borrowedToken?.token.lastPrice).toString())
     )
   }
 
@@ -383,26 +439,10 @@ const Borrower = ({ user, web3 }: any) => {
       />
       <div className={classes.bottomMenuWrapper}>
         <div>
-          <div>
-            Your balance({borrowedToken?.token.symbol}):
-            <Tooltip title={tokenBalance}>{transform(tokenBalance)}</Tooltip>
-          </div>
-          <Tooltip title={borrowedToken?.token.lastPrice * tokenBalance}>
-            ~${transform(borrowedToken?.token.lastPrice * tokenBalance)}
-          </Tooltip>
-          <div>
-            Max available to repay({borrowedToken?.token.symbol}):{' '}
-            <Tooltip title={maxToRepay() / borrowedToken?.token.lastPrice}>
-              {transform(maxToRepay() / borrowedToken?.token.lastPrice)}
-            </Tooltip>
-          </div>
-          <Tooltip title={maxToRepay()}>
-            ~${transform(maxToRepay().toString())}
-          </Tooltip>
           <Input.Group compact>
             <Input
               style={{
-                width: '200px',
+                width: '250px',
               }}
               disabled={!disable}
               placeholder={`Enter ${borrowedToken?.token.symbol} amount`}
@@ -425,6 +465,25 @@ const Borrower = ({ user, web3 }: any) => {
               Set Max
             </Button>
           </Input.Group>
+          <div className={classes.bottomMenuInfo}>
+            Your balance, {borrowedToken?.token.symbol}:{' '}
+            <Tooltip title={tokenBalance}>{transform(tokenBalance)}</Tooltip>
+          </div>
+          <Tooltip
+            className={classes.bottomMenuInfoUSD}
+            title={borrowedToken?.token.lastPrice * tokenBalance}
+          >
+            ~${transform(borrowedToken?.token.lastPrice * tokenBalance)}
+          </Tooltip>
+          <div className={classes.bottomMenuInfo}>
+            Max available to repay, {borrowedToken?.token.symbol}:{' '}
+            <Tooltip title={maxToRepay() / borrowedToken?.token.lastPrice}>
+              {transform(maxToRepay() / borrowedToken?.token.lastPrice)}
+            </Tooltip>
+          </div>
+          <Tooltip className={classes.bottomMenuInfoUSD} title={maxToRepay()}>
+            ~${transform(maxToRepay().toString())}
+          </Tooltip>
         </div>
         <div className={classes.repayButton}>
           <Button
