@@ -86,7 +86,8 @@ const Borrower = ({ user, web3 }: any) => {
 
   const closeFactor = 0.33
 
-  const maxToRepayUSD = totalBorrow && totalBorrow * closeFactor
+  const maxToRepayUSD =
+    borrowedToken?.value * borrowedToken?.token.lastPrice * closeFactor
 
   const maxBorrowedUsd = suppliedToken?.token.lastPrice * suppliedToken?.value
 
@@ -296,6 +297,7 @@ const Borrower = ({ user, web3 }: any) => {
           .liquidateBorrow(userAddress, asset.token.oTokenAddress)
           .send({
             from: user.address,
+            gasLimit: web3.utils.toHex(12990000),
             value: toBn(`${value}`, asset.token.tokenDecimal).toString(),
           })
       } else {
@@ -306,6 +308,7 @@ const Borrower = ({ user, web3 }: any) => {
             asset.token.oTokenAddress
           )
           .send({
+            gasLimit: web3.utils.toHex(12990000),
             from: user.address,
           })
       }
@@ -370,6 +373,7 @@ const Borrower = ({ user, web3 }: any) => {
     }
 
     await liquidateBorrow(supplyedAsset, value, marketContract)
+    await getTokenBalance(tokenContract, asset, !asset.token.tokenAddress)
   }
 
   const setMaxInInput = () => {
