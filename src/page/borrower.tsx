@@ -52,6 +52,7 @@ const styles = createUseStyles({
     alignItems: 'start',
   },
   bottomMenuInfo: {
+    color: '#00000094',
     fontSize: '14px',
     display: 'flex',
     justifyContent: 'space-between',
@@ -59,6 +60,7 @@ const styles = createUseStyles({
     paddingTop: 10,
   },
   bottomMenuInfoUSD: {
+    color: '#00000094',
     fontSize: '14px',
     display: 'flex',
     justifyContent: 'end',
@@ -75,7 +77,7 @@ const Borrower = ({ user, web3 }: any) => {
   const [tokenBalance, setTokenBalance] = useState<any>(null)
   const [suppliedToken, setSuppliedToken] = useState<any>(null)
   const [borrowedToken, setBorrowedToken] = useState<any>(null)
-  const [locked, setLocked] = useState<any>(null)
+  const [locked, setLocked] = useState<any>(false)
   const [inputValue, setInputValue] = useState<any>('')
 
   const disable = !!suppliedToken && !!borrowedToken
@@ -83,17 +85,14 @@ const Borrower = ({ user, web3 }: any) => {
   // @ts-ignore
   const zeroInInput = !(inputValue.replace(/[\s,]/g, '') == 0)
 
-  const disableRepayButton =
-    disable && +inputValue.replace(/[\s,]/g, '') <= tokenBalance && zeroInInput
-
   const closeFactor = 0.33
 
-  const maxToRepayUSD =
-    borrowedToken?.value * borrowedToken?.token.lastPrice * closeFactor
-
-  const maxBorrowedUsd = suppliedToken?.token.lastPrice * suppliedToken?.value
-
   const maxToRepay = () => {
+    const maxToRepayUSD =
+      borrowedToken?.value * borrowedToken?.token.lastPrice * closeFactor
+
+    const maxBorrowedUsd = suppliedToken?.token.lastPrice * suppliedToken?.value
+
     return maxBorrowedUsd > maxToRepayUSD ? maxToRepayUSD : maxBorrowedUsd
   }
 
@@ -114,6 +113,7 @@ const Borrower = ({ user, web3 }: any) => {
       path: `users/${userAddress}`,
     }).then((res) => {
       setHealse(res.data.data.positionHealth)
+      if (res.data.data.positionHealth.coefficient < 1) setLocked(true)
     })
   }, [])
 
@@ -247,13 +247,10 @@ const Borrower = ({ user, web3 }: any) => {
 
     let health = item
     if (health < 1) {
-      setLocked(false)
       state = 'unsafe'
     } else if (health <= 1.05) {
       state = 'risky'
-      setLocked(true)
     } else {
-      setLocked(true)
       state = 'safe'
     }
     return state
@@ -297,6 +294,7 @@ const Borrower = ({ user, web3 }: any) => {
     tokenContract: any
   ) => {
     let result
+    console.log(!asset.token.oTokenAddress)
     try {
       if (!asset.token.oTokenAddress) {
         result = await tokenContract.methods
@@ -322,12 +320,25 @@ const Borrower = ({ user, web3 }: any) => {
       request({
         method: 'get',
         path: `assets/${userAddress}`,
-      }).then((res) => dispatch(setUserAssets(res.data.data)))
+      }).then((res) => {
+        dispatch(setUserAssets(res.data.data))
+        setSuppliedToken(
+          res.data.data.supplied.find(
+            (item: any) => item.token._id === suppliedToken.token._id
+          )
+        )
+        setBorrowedToken(
+          res.data.data.borrowed.find(
+            (item: any) => item.token._id === borrowedToken.token._id
+          )
+        )
+      })
       request({
         method: 'get',
         path: `users/${userAddress}`,
       }).then((res) => {
         setHealse(res.data.data.positionHealth)
+        if (res.data.data.positionHealth.coefficient < 1) setLocked(true)
       })
 
       console.log('liquidate:', result)
@@ -383,6 +394,7 @@ const Borrower = ({ user, web3 }: any) => {
 
     await liquidateBorrow(supplyedAsset, value, marketContract)
     await getTokenBalance(tokenContract, asset, !asset.token.tokenAddress)
+    setInputValue('')
   }
 
   const setMaxInInput = () => {
@@ -393,6 +405,12 @@ const Borrower = ({ user, web3 }: any) => {
       commify((maxToInput / borrowedToken?.token.lastPrice).toString())
     )
   }
+
+  const disableRepayButton =
+    disable &&
+    +inputValue.replace(/[\s,]/g, '') <=
+      maxToRepay() / borrowedToken?.token.lastPrice &&
+    zeroInInput
 
   // @ts-ignore
   return (
@@ -495,7 +513,7 @@ const Borrower = ({ user, web3 }: any) => {
             </Tooltip>
           </div>
           <Tooltip className={classes.bottomMenuInfoUSD} title={maxToRepay()}>
-            ~${transform(maxToRepay().toString())}
+            ~${suppliedToken ? transform(maxToRepay().toString()) : 0}
           </Tooltip>
         </div>
         <div className={classes.repayButton}>
