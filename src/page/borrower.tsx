@@ -66,6 +66,10 @@ const styles = createUseStyles({
     justifyContent: 'end',
     alignItems: 'center',
   },
+  bottomMenuOperationWrapper: {
+    display: 'flex',
+    width: 416,
+  },
 })
 
 const Borrower = ({ user, web3 }: any) => {
@@ -93,7 +97,7 @@ const Borrower = ({ user, web3 }: any) => {
 
     const maxBorrowedUsd = suppliedToken?.token.lastPrice * suppliedToken?.value
 
-    return maxBorrowedUsd > maxToRepayUSD ? maxToRepayUSD : maxBorrowedUsd
+    return maxBorrowedUsd > maxToRepayUSD ? maxToRepayUSD : maxBorrowedUsd * 0.9
   }
 
   const { supplied, borrowed } = useSelector(
@@ -291,24 +295,29 @@ const Borrower = ({ user, web3 }: any) => {
   const liquidateBorrow = async (
     asset: any,
     value: any,
-    tokenContract: any
+    tokenContract: any,
+    borrowedAsset: any
   ) => {
     let result
-    console.log(!asset.token.oTokenAddress)
     try {
-      if (!asset.token.oTokenAddress) {
+      if (!borrowedAsset.token.tokenAddress) {
+        console.log(1)
         result = await tokenContract.methods
           .liquidateBorrow(userAddress, asset.token.oTokenAddress)
           .send({
             from: user.address,
             gasLimit: web3.utils.toHex(12990000),
-            value: toBn(`${value}`, asset.token.tokenDecimal).toString(),
+            value: toBn(
+              `${value}`,
+              borrowedAsset.token.tokenDecimal
+            ).toString(),
           })
       } else {
+        console.log(2)
         result = await tokenContract.methods
           .liquidateBorrow(
             userAddress,
-            toBn(`${value}`, asset.token.tokenDecimal).toString(),
+            toBn(`${value}`, borrowedAsset.token.tokenDecimal).toString(),
             asset.token.oTokenAddress
           )
           .send({
@@ -392,7 +401,7 @@ const Borrower = ({ user, web3 }: any) => {
       await approve(asset, value, tokenContract)
     }
 
-    await liquidateBorrow(supplyedAsset, value, marketContract)
+    await liquidateBorrow(supplyedAsset, value, marketContract, asset)
     await getTokenBalance(tokenContract, asset, !asset.token.tokenAddress)
     setInputValue('')
   }
@@ -470,61 +479,66 @@ const Borrower = ({ user, web3 }: any) => {
       />
       <div className={classes.bottomMenuWrapper}>
         <div>
-          <Input.Group compact>
-            <Input
-              style={{
-                width: '250px',
-              }}
-              disabled={!disable}
-              placeholder={`Enter ${borrowedToken?.token.symbol} amount`}
-              value={inputValue}
-              onChange={(e) =>
-                setInputValue(
-                  `${commify(
-                    `${e.target.value
-                      .replace(/[^0-9.]/g, '')
-                      .replace(/(\..*)\./g, '$1')}`
-                  )}`
-                )
-              }
-            />
-            <Button
-              type="primary"
-              disabled={!disable}
-              onClick={() => setMaxInInput()}
-            >
-              Set Max
-            </Button>
-          </Input.Group>
-          <div className={classes.bottomMenuInfo}>
-            Your balance, {borrowedToken?.token.symbol}:{' '}
-            <Tooltip title={tokenBalance}>{transform(tokenBalance)}</Tooltip>
+          <div className={classes.bottomMenuOperationWrapper}>
+            <Input.Group compact>
+              <Input
+                style={{
+                  width: '250px',
+                }}
+                disabled={!disable}
+                placeholder={`Enter ${borrowedToken?.token.symbol} amount`}
+                value={inputValue}
+                onChange={(e) =>
+                  setInputValue(
+                    `${commify(
+                      `${e.target.value
+                        .replace(/[^0-9.]/g, '')
+                        .replace(/(\..*)\./g, '$1')}`
+                    )}`
+                  )
+                }
+              />
+              <Button
+                type="primary"
+                disabled={!disable}
+                onClick={() => setMaxInInput()}
+              >
+                Set Max
+              </Button>
+            </Input.Group>
+            <div className={classes.repayButton}>
+              <Button
+                disabled={!disableRepayButton}
+                size="middle"
+                type="primary"
+                onClick={() => heandleRepay()}
+              >
+                Repay
+              </Button>
+            </div>
           </div>
-          <Tooltip
-            className={classes.bottomMenuInfoUSD}
-            title={borrowedToken?.token.lastPrice * tokenBalance}
-          >
-            ~${transform(borrowedToken?.token.lastPrice * tokenBalance)}
-          </Tooltip>
-          <div className={classes.bottomMenuInfo}>
-            Max available to repay, {borrowedToken?.token.symbol}:{' '}
-            <Tooltip title={maxToRepay() / borrowedToken?.token.lastPrice}>
-              {transform(maxToRepay() / borrowedToken?.token.lastPrice)}
+
+          <div>
+            <div className={classes.bottomMenuInfo}>
+              Your balance, {borrowedToken?.token.symbol}:{' '}
+              <Tooltip title={tokenBalance}>{transform(tokenBalance)}</Tooltip>
+            </div>
+            <Tooltip
+              className={classes.bottomMenuInfoUSD}
+              title={borrowedToken?.token.lastPrice * tokenBalance}
+            >
+              ~${transform(borrowedToken?.token.lastPrice * tokenBalance)}
+            </Tooltip>
+            <div className={classes.bottomMenuInfo}>
+              Max available to repay, {borrowedToken?.token.symbol}:{' '}
+              <Tooltip title={maxToRepay() / borrowedToken?.token.lastPrice}>
+                {transform(maxToRepay() / borrowedToken?.token.lastPrice)}
+              </Tooltip>
+            </div>
+            <Tooltip className={classes.bottomMenuInfoUSD} title={maxToRepay()}>
+              ~${suppliedToken ? transform(maxToRepay().toString()) : 0}
             </Tooltip>
           </div>
-          <Tooltip className={classes.bottomMenuInfoUSD} title={maxToRepay()}>
-            ~${suppliedToken ? transform(maxToRepay().toString()) : 0}
-          </Tooltip>
-        </div>
-        <div className={classes.repayButton}>
-          <Button
-            disabled={!disableRepayButton}
-            size="middle"
-            type="primary"
-            onClick={() => heandleRepay()}
-          >
-            Repay
-          </Button>
         </div>
       </div>
     </div>
