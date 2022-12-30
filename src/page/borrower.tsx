@@ -13,6 +13,8 @@ import { setUserAssets } from '../redux/userAssets'
 import { transform } from '../factory/bigNumber'
 import Input from 'antd/es/input/Input'
 import { commify } from '../utils'
+import Loader from '../components/Loader/Loader'
+import { setLoading } from '../redux/loading'
 const styles = createUseStyles({
   overviewBlock: {
     margin: '0 auto',
@@ -70,6 +72,21 @@ const styles = createUseStyles({
     display: 'flex',
     width: 416,
   },
+  addressLink: {
+    textDecorationLine: 'none',
+    cursor: 'pointer',
+    color: '#000000E0',
+    '&:active': {
+      textDecoration: 'none',
+    },
+    '&:hover': {
+      textDecorationLine: 'underline',
+      color: '#000000E0',
+    },
+  },
+  tableText: {
+    cursor: 'default',
+  },
 })
 
 const Borrower = ({ user, web3 }: any) => {
@@ -83,7 +100,16 @@ const Borrower = ({ user, web3 }: any) => {
   const [borrowedToken, setBorrowedToken] = useState<any>(null)
   const [locked, setLocked] = useState<any>(false)
   const [inputValue, setInputValue] = useState<any>('')
+
   const [api, contextHolder] = notification.useNotification()
+
+  const { supplied, borrowed } = useSelector(
+    (state: any) => state.userAssetsReducer
+  )
+  const loading = useSelector((state) => state.loadingReducer)
+
+  const { userAddress } = useParams()
+  const dispatch = useDispatch()
   const openNotification = (
     message: string,
     description: string,
@@ -133,14 +159,8 @@ const Borrower = ({ user, web3 }: any) => {
     return maxBorrowedUsd > maxToRepayUSD ? maxToRepayUSD : maxBorrowedUsd * 0.9
   }
 
-  const { supplied, borrowed } = useSelector(
-    (state: any) => state.userAssetsReducer
-  )
-
-  const { userAddress } = useParams()
-  const dispatch = useDispatch()
-
   useEffect(() => {
+    dispatch(setLoading(true))
     request({
       method: 'get',
       path: `assets/${userAddress}`,
@@ -172,6 +192,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'address',
       render: (text: string) => (
         <a
+          className={classes.addressLink}
           target="_blank"
           href={`https://moonbase.moonscan.io/address/${text}`}
         >
@@ -185,7 +206,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'supplied',
       render: (value: string) => (
         <Tooltip title={value}>
-          <span>{transform(value)}</span>
+          <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
     },
@@ -195,7 +216,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'suppliedUSD',
       render: (value: string) => (
         <Tooltip title={value}>
-          <span>{transform(value)}</span>
+          <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
     },
@@ -226,6 +247,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'address',
       render: (text: string) => (
         <a
+          className={classes.addressLink}
           target="_blank"
           href={`https://moonbase.moonscan.io/address/${text}`}
         >
@@ -239,7 +261,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'borrowed',
       render: (value: string) => (
         <Tooltip title={value}>
-          <span>{transform(value)}</span>
+          <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
     },
@@ -249,7 +271,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'borrowedUSD',
       render: (value: string) => (
         <Tooltip title={value}>
-          <span>{transform(value)}</span>
+          <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
     },
@@ -515,6 +537,7 @@ const Borrower = ({ user, web3 }: any) => {
   // @ts-ignore
   return (
     <>
+      {loading.loading && <Loader />}
       {contextHolder}
       <div className={classes.overviewBlock}>
         <div className={classes.textWrapper}>

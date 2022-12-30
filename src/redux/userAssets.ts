@@ -44,7 +44,7 @@ export const userAssetsSlice = createSlice({
   initialState,
   reducers: {
     setUserAssets: (state, action: PayloadAction<any>) => {
-      state.supplied = action.payload.supplied.map((item) => {
+      state.supplied = action.payload.supplied.map((item: any) => {
         return {
           key: item.token._id,
           symbol: item.token.symbol,
@@ -54,7 +54,7 @@ export const userAssetsSlice = createSlice({
           item,
         }
       })
-      state.borrowed = action.payload.borrowed.map((item) => {
+      state.borrowed = action.payload.borrowed.map((item: any) => {
         return {
           key: item.token._id,
           symbol: item.token.symbol,

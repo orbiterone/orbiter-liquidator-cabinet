@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { Table, Button, Tag, Tooltip } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { createUseStyles } from 'react-jss'
@@ -7,10 +7,9 @@ import { request } from '../../factory/axios'
 import { setOverview } from 'src/redux/overview'
 import type { TablePaginationConfig } from 'antd/es/table'
 import { transform } from '../../factory/bigNumber'
-
-interface TableParams {
-  pagination?: TablePaginationConfig
-}
+import { setTableParams } from 'src/redux/tableParams'
+import Loader from '../Loader/Loader'
+import { setLoading } from '../../redux/loading'
 
 const styles = createUseStyles({
   addressLink: {
@@ -33,27 +32,29 @@ const styles = createUseStyles({
 const TableOverview = () => {
   const classes = styles()
   const navigate = useNavigate()
-  const [tableParams, setTableParams] = useState<TableParams>({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-  })
 
   const { overview } = useSelector((state: any) => state.overviewReducer)
+  const { tableParams } = useSelector((state: any) => state.tableParamsReducer)
+  const loading = useSelector((state: any) => state.loadingReducer)
+
   const dispatch = useDispatch()
 
   useEffect(() => {
+    dispatch(setLoading(true))
     request({
       method: 'get',
-      path: `users?page=${tableParams.pagination?.current}`,
-    }).then((res) => dispatch(setOverview(res.data.data)))
-  }, [tableParams.pagination?.current])
+      path: `users?page=${tableParams?.current}`,
+    }).then((res) => {
+      dispatch(setOverview(res.data.data))
+    })
+  }, [tableParams?.current])
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
-    setTableParams({
-      pagination,
-    })
+    dispatch(
+      setTableParams({
+        current: pagination.current,
+      })
+    )
   }
 
   const calcState = (item: any) => {
@@ -163,18 +164,22 @@ const TableOverview = () => {
   ]
 
   return (
-    <Table
-      // @ts-ignore
-      columns={columns}
-      dataSource={overview.entities}
-      pagination={{
-        pageSize: 10,
-        position: ['bottomCenter'],
-        total: overview.countItem,
-      }}
-      onChange={handleTableChange}
-      size="small"
-    />
+    <>
+      {loading.loading && <Loader />}
+      <Table
+        // @ts-ignore
+        columns={columns}
+        dataSource={overview.entities}
+        pagination={{
+          pageSize: 10,
+          position: ['bottomCenter'],
+          total: overview.countItem,
+          current: tableParams?.current,
+        }}
+        onChange={handleTableChange}
+        size="small"
+      />
+    </>
   )
 }
 export default TableOverview
