@@ -650,7 +650,10 @@ const Borrower = ({ user, web3 }: any) => {
               </Tooltip>
               <div className={classes.bottomMenuInfo}>
                 Max available to repay, {borrowedToken?.token.symbol}:{' '}
-                <Tooltip placement="topRight" title={maxToRepay() / borrowedToken?.token.lastPrice}>
+                <Tooltip
+                  placement="topRight"
+                  title={maxToRepay() / borrowedToken?.token.lastPrice}
+                >
                   {transform(maxToRepay() / borrowedToken?.token.lastPrice)}
                 </Tooltip>
               </div>
