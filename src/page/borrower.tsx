@@ -637,11 +637,12 @@ const Borrower = ({ user, web3 }: any) => {
             <div>
               <div className={classes.bottomMenuInfo}>
                 Your balance, {borrowedToken?.token.symbol}:{' '}
-                <Tooltip title={tokenBalance}>
+                <Tooltip placement="topRight" title={tokenBalance}>
                   {transform(tokenBalance)}
                 </Tooltip>
               </div>
               <Tooltip
+                placement="topRight"
                 className={classes.bottomMenuInfoUSD}
                 title={borrowedToken?.token.lastPrice * tokenBalance}
               >
@@ -649,11 +650,12 @@ const Borrower = ({ user, web3 }: any) => {
               </Tooltip>
               <div className={classes.bottomMenuInfo}>
                 Max available to repay, {borrowedToken?.token.symbol}:{' '}
-                <Tooltip title={maxToRepay() / borrowedToken?.token.lastPrice}>
+                <Tooltip placement="topRight" title={maxToRepay() / borrowedToken?.token.lastPrice}>
                   {transform(maxToRepay() / borrowedToken?.token.lastPrice)}
                 </Tooltip>
               </div>
               <Tooltip
+                placement="topRight"
                 className={classes.bottomMenuInfoUSD}
                 title={maxToRepay()}
               >
