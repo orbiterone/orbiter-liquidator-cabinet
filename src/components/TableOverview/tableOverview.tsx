@@ -10,6 +10,7 @@ import { transform } from '../../factory/bigNumber'
 import { setTableParams } from 'src/redux/tableParams'
 import Loader from '../Loader/Loader'
 import { setLoading } from '../../redux/loading'
+import { useSearchParams } from 'react-router-dom'
 
 const styles = createUseStyles({
   addressLink: {
@@ -32,9 +33,9 @@ const styles = createUseStyles({
 const TableOverview = () => {
   const classes = styles()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const { overview } = useSelector((state: any) => state.overviewReducer)
-  const { tableParams } = useSelector((state: any) => state.tableParamsReducer)
   const loading = useSelector((state: any) => state.loadingReducer)
 
   const dispatch = useDispatch()
@@ -43,18 +44,14 @@ const TableOverview = () => {
     dispatch(setLoading(true))
     request({
       method: 'get',
-      path: `users?page=${tableParams?.current}`,
+      path: `users?page=${searchParams.get('page') || 1}`,
     }).then((res) => {
       dispatch(setOverview(res.data.data))
     })
-  }, [tableParams?.current])
+  }, [searchParams.get('page')])
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
-    dispatch(
-      setTableParams({
-        current: pagination.current,
-      })
-    )
+    navigate({ pathname: `/`, search: `?page=${pagination.current}` })
   }
 
   const calcState = (item: any) => {
@@ -174,7 +171,7 @@ const TableOverview = () => {
           pageSize: 10,
           position: ['bottomCenter'],
           total: overview.countItem,
-          current: tableParams?.current,
+          current: +searchParams.get('page') || 1,
         }}
         onChange={handleTableChange}
         size="small"
