@@ -15,6 +15,8 @@ import Input from 'antd/es/input/Input'
 import { commify } from '../utils'
 import Loader from '../components/Loader/Loader'
 import { setLoading } from '../redux/loading'
+import bigDecimal from 'js-big-decimal'
+import { log } from '@craco/craco/dist/lib/logger'
 const styles = createUseStyles({
   overviewBlock: {
     margin: '0 auto',
@@ -98,6 +100,8 @@ const Borrower = ({ user, web3 }: any) => {
   const [tokenBalance, setTokenBalance] = useState<any>(null)
   const [suppliedToken, setSuppliedToken] = useState<any>(null)
   const [borrowedToken, setBorrowedToken] = useState<any>(null)
+  const [borrowedCheckbox, setBorrowedCheckbox] = useState<any>(false)
+  const [suppliedCheckbox, setSuppliedCheckbox] = useState<any>(false)
   const [locked, setLocked] = useState<any>(false)
   const [inputValue, setInputValue] = useState<any>('')
 
@@ -106,7 +110,7 @@ const Borrower = ({ user, web3 }: any) => {
   const { supplied, borrowed } = useSelector(
     (state: any) => state.userAssetsReducer
   )
-  const loading = useSelector((state) => state.loadingReducer)
+  const loading = useSelector((state: any) => state.loadingReducer)
 
   const { userAddress } = useParams()
   const dispatch = useDispatch()
@@ -170,7 +174,7 @@ const Borrower = ({ user, web3 }: any) => {
       path: `users/${userAddress}`,
     }).then((res) => {
       setHealse(res.data.data.positionHealth)
-      if (res.data.data.positionHealth.coefficient < 1) setLocked(true)
+      if (res.data.data.positionHealth.coefficient > 1) setLocked(true)
     })
   }, [])
 
@@ -179,6 +183,31 @@ const Borrower = ({ user, web3 }: any) => {
   }, [suppliedToken, borrowedToken])
 
   const classes = styles()
+
+  const setChecked = (value: any, type: any) => {
+    switch (type) {
+      case 'borrowed': {
+        if (value.symbol === borrowedCheckbox.symbol) {
+          return borrowedCheckbox.checked
+        }
+        break
+      }
+
+      case 'supplied': {
+        if (value.symbol === suppliedCheckbox.symbol) {
+          return suppliedCheckbox.checked
+        }
+        break
+      }
+      case 'delete': {
+        setSuppliedToken(null)
+        setBorrowedToken(null)
+        setBorrowedCheckbox({ symbol: null, checked: false })
+        setSuppliedCheckbox({ symbol: null, checked: false })
+        return false
+      }
+    }
+  }
 
   const columns = [
     {
@@ -227,9 +256,10 @@ const Borrower = ({ user, web3 }: any) => {
 
       render: (value: any) => (
         <input
-          disabled={!locked}
+          disabled={locked}
           type="radio"
           name="suppliedRadio"
+          checked={setChecked(value, 'supplied')}
           onChange={() => heandleSuppliedApprove(value.item)}
         />
       ),
@@ -283,10 +313,11 @@ const Borrower = ({ user, web3 }: any) => {
       render: (value: any) => {
         return (
           <input
-            disabled={!locked}
+            disabled={locked}
             type="radio"
             name="borrowedRadio"
-            onChange={() => heandleBorrowedApprove(value.item)}
+            checked={setChecked(value, 'borrowed')}
+            onChange={() => handleBorrowedApprove(value.item)}
           />
         )
       },
@@ -385,7 +416,6 @@ const Borrower = ({ user, web3 }: any) => {
     )
     try {
       if (!borrowedAsset.token.tokenAddress) {
-        console.log(1)
         result = await tokenContract.methods
           .liquidateBorrow(userAddress, asset.token.oTokenAddress)
           .send({
@@ -407,7 +437,6 @@ const Borrower = ({ user, web3 }: any) => {
               )
           )
       } else {
-        console.log(2)
         result = await tokenContract.methods
           .liquidateBorrow(
             userAddress,
@@ -429,30 +458,23 @@ const Borrower = ({ user, web3 }: any) => {
               )
           )
       }
-
+      setChecked(null, 'delete')
       request({
         method: 'get',
         path: `assets/${userAddress}`,
       }).then((res) => {
         dispatch(setUserAssets(res.data.data))
-        setSuppliedToken(
-          res.data.data.supplied.find(
-            (item: any) => item.token._id === suppliedToken.token._id
-          )
-        )
-        setBorrowedToken(
-          res.data.data.borrowed.find(
-            (item: any) => item.token._id === borrowedToken.token._id
-          )
-        )
+        setChecked(null, 'delete')
       })
       request({
         method: 'get',
         path: `users/${userAddress}`,
       }).then((res) => {
         setHealse(res.data.data.positionHealth)
-        if (res.data.data.positionHealth.coefficient < 1) setLocked(true)
+        if (res.data.data.positionHealth.coefficient > 1) setLocked(true)
       })
+      setBorrowedToken(null)
+      setSuppliedToken(null)
       openNotification(
         'Success',
         'Your repayment is complete and your balances have been updated.',
@@ -489,17 +511,19 @@ const Borrower = ({ user, web3 }: any) => {
     }
   }
 
-  const heandleBorrowedApprove = async (value: any) => {
-    const { tokenContract, marketContract } = await defineContracts(
+  const handleBorrowedApprove = async (value: any) => {
+    const { tokenContract } = await defineContracts(
       value,
       !value.token.tokenAddress
     )
     getTokenBalance(tokenContract, value, !value.token.tokenAddress)
     setBorrowedToken(value)
+    setBorrowedCheckbox({ symbol: value.token.symbol, checked: true })
   }
 
   const heandleSuppliedApprove = async (value: any) => {
     setSuppliedToken(value)
+    setSuppliedCheckbox({ symbol: value.token.symbol, checked: true })
   }
 
   const heandleRepay = async () => {
@@ -522,10 +546,9 @@ const Borrower = ({ user, web3 }: any) => {
   const setMaxInInput = () => {
     const balanceInUSD = tokenBalance * borrowedToken?.token.lastPrice
     const maxToInput = maxToRepay() > balanceInUSD ? balanceInUSD : maxToRepay()
+    const maxToInputToken = maxToInput / borrowedToken?.token.lastPrice
 
-    setInputValue(
-      commify((maxToInput / borrowedToken?.token.lastPrice).toString())
-    )
+    setInputValue(commify(bigDecimal.multiply(maxToInputToken, 1)))
   }
 
   const disableRepayButton =
@@ -534,7 +557,6 @@ const Borrower = ({ user, web3 }: any) => {
       maxToRepay() / borrowedToken?.token.lastPrice &&
     zeroInInput
 
-  // @ts-ignore
   return (
     <>
       {loading.loading && <Loader />}
@@ -585,7 +607,7 @@ const Borrower = ({ user, web3 }: any) => {
         />
         <div className={classes.blockWrapper}>
           Choose a different asset to repay on behalf of borrower to return
-          their Account Liquidity to 0:
+          their Account Health to under to 100:
         </div>
         <Table
           size="small"

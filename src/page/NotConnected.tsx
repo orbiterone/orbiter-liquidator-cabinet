@@ -1,6 +1,8 @@
 import React from 'react'
 import { createUseStyles } from 'react-jss'
 import { Button } from 'antd'
+import Loader from '../components/Loader/Loader'
+import { useSelector } from 'react-redux'
 const styles = createUseStyles({
   button: {
     position: 'absolute',
@@ -9,31 +11,29 @@ const styles = createUseStyles({
     transform: 'translate(-50%, -50%)',
   },
 })
-
-const CHAIN_ID = +process.env.REACT_APP_X_ORBITER_CHAIN_ID
 interface Props {
   connectWallet: (type: string) => void
   switchNetwork: () => void
   chainId: number
 }
-const NotConnected: React.FC<Props> = ({
-  connectWallet,
-  switchNetwork,
-  chainId,
-}) => {
+const NotConnected: React.FC<Props> = ({ connectWallet }) => {
   const classes = styles()
+  const loading = useSelector((state: any) => state.loadingReducer)
   return (
-    <div className={classes.button}>
-      <Button
-        size="large"
-        type="primary"
-        onClick={() => {
-          connectWallet('metamask')
-        }}
-      >
-        Connect Wallet
-      </Button>
-    </div>
+    <>
+      {loading.loading && <Loader />}
+      <div className={classes.button}>
+        <Button
+          size="large"
+          type="primary"
+          onClick={() => {
+            connectWallet('metamask')
+          }}
+        >
+          Connect Wallet
+        </Button>
+      </div>
+    </>
   )
 }
 
