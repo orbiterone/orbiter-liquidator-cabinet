@@ -92,7 +92,7 @@ const styles = createUseStyles({
 })
 
 const Borrower = ({ user, web3 }: any) => {
-  const [healse, setHealse] = useState<any>({
+  const [health, setHealth] = useState<any>({
     coefficient: null,
     percentage: null,
   })
@@ -164,7 +164,10 @@ const Borrower = ({ user, web3 }: any) => {
   }
 
   useEffect(() => {
-    dispatch(setLoading(true))
+    setSuppliedToken(null)
+    setBorrowedToken(null)
+    setSuppliedCheckbox(false)
+    setBorrowedCheckbox(false)
     request({
       method: 'get',
       path: `assets/${userAddress}`,
@@ -173,10 +176,10 @@ const Borrower = ({ user, web3 }: any) => {
       method: 'get',
       path: `users/${userAddress}`,
     }).then((res) => {
-      setHealse(res.data.data.positionHealth)
+      setHealth(res.data.data.positionHealth)
       if (res.data.data.positionHealth.coefficient > 1) setLocked(true)
     })
-  }, [])
+  }, [user.address])
 
   useEffect(() => {
     setInputValue('')
@@ -260,7 +263,7 @@ const Borrower = ({ user, web3 }: any) => {
           type="radio"
           name="suppliedRadio"
           checked={setChecked(value, 'supplied')}
-          onChange={() => heandleSuppliedApprove(value.item)}
+          onChange={() => handleSuppliedApprove(value.item)}
         />
       ),
     },
@@ -332,7 +335,7 @@ const Borrower = ({ user, web3 }: any) => {
     }, 2000)
   }
 
-  const calcState = (item = healse.coefficient) => {
+  const calcState = (item = health.coefficient) => {
     let state = ''
 
     let health = item
@@ -470,7 +473,7 @@ const Borrower = ({ user, web3 }: any) => {
         method: 'get',
         path: `users/${userAddress}`,
       }).then((res) => {
-        setHealse(res.data.data.positionHealth)
+        setHealth(res.data.data.positionHealth)
         if (res.data.data.positionHealth.coefficient > 1) setLocked(true)
       })
       setBorrowedToken(null)
@@ -521,15 +524,15 @@ const Borrower = ({ user, web3 }: any) => {
     setBorrowedCheckbox({ symbol: value.token.symbol, checked: true })
   }
 
-  const heandleSuppliedApprove = async (value: any) => {
+  const handleSuppliedApprove = async (value: any) => {
     setSuppliedToken(value)
     setSuppliedCheckbox({ symbol: value.token.symbol, checked: true })
   }
 
-  const heandleRepay = async () => {
+  const handleRepay = async () => {
     const value = inputValue.replace(/[\s,]/g, '')
     const asset = borrowedToken
-    const supplyedAsset = suppliedToken
+    const suppliedAsset = suppliedToken
     const { tokenContract, marketContract } = await defineContracts(
       asset,
       !asset.token.tokenAddress
@@ -538,7 +541,7 @@ const Borrower = ({ user, web3 }: any) => {
       await approve(asset, value, tokenContract)
     }
 
-    await liquidateBorrow(supplyedAsset, value, marketContract, asset)
+    await liquidateBorrow(suppliedAsset, value, marketContract, asset)
     await getTokenBalance(tokenContract, asset, !asset.token.tokenAddress)
     setInputValue('')
   }
@@ -575,9 +578,9 @@ const Borrower = ({ user, web3 }: any) => {
         <div className={classes.textWrapper}>
           <div>Position Health:</div>
           <div className={classes.positionWrapper}>
-            <div>{transform(healse.coefficient, 2)}</div>
+            <div>{transform(health.coefficient, 2)}</div>
             <div className={classes.hr}></div>
-            <div>{transform(healse.percentage, 2)}%</div>
+            <div>{transform(health.percentage, 2)}%</div>
           </div>
         </div>
         <div className={classes.textWrapper}>
@@ -649,7 +652,7 @@ const Borrower = ({ user, web3 }: any) => {
                   disabled={!disableRepayButton}
                   size="middle"
                   type="primary"
-                  onClick={() => heandleRepay()}
+                  onClick={() => handleRepay()}
                 >
                   Repay
                 </Button>
