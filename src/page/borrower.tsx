@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Table, Button, Tag, Tooltip, notification } from 'antd'
 import { fromBn, toBn } from 'evm-bn'
 import erc20Abi from '../contracts/erc20Abi.abi'
@@ -106,6 +106,7 @@ const Borrower = ({ user, web3 }: any) => {
   const [inputValue, setInputValue] = useState<any>('')
 
   const [api, contextHolder] = notification.useNotification()
+  const navigate = useNavigate()
 
   const { supplied, borrowed } = useSelector(
     (state: any) => state.userAssetsReducer
@@ -217,11 +218,13 @@ const Borrower = ({ user, web3 }: any) => {
       title: 'Symbol',
       dataIndex: 'symbol',
       key: 'symbol',
+      width: '10%',
     },
     {
       title: 'Address',
       dataIndex: 'address',
       key: 'address',
+      width: '50%',
       render: (text: string) => (
         <a
           className={classes.addressLink}
@@ -236,6 +239,7 @@ const Borrower = ({ user, web3 }: any) => {
       title: 'Supplied',
       dataIndex: 'supplied',
       key: 'supplied',
+      width: '10%',
       render: (value: string) => (
         <Tooltip title={value}>
           <span className={classes.tableText}>{transform(value)}</span>
@@ -256,7 +260,6 @@ const Borrower = ({ user, web3 }: any) => {
       title: '',
       key: 'action',
       width: '10%',
-
       render: (value: any) => (
         <input
           disabled={locked}
@@ -273,11 +276,13 @@ const Borrower = ({ user, web3 }: any) => {
       title: 'Symbol',
       dataIndex: 'symbol',
       key: 'symbol',
+      width: '10%',
     },
     {
       title: 'Address',
       dataIndex: 'address',
       key: 'address',
+      width: '50%',
       render: (text: string) => (
         <a
           className={classes.addressLink}
@@ -292,6 +297,7 @@ const Borrower = ({ user, web3 }: any) => {
       title: 'Borrowed',
       dataIndex: 'borrowed',
       key: 'borrowed',
+      width: '10%',
       render: (value: string) => (
         <Tooltip title={value}>
           <span className={classes.tableText}>{transform(value)}</span>
@@ -565,6 +571,9 @@ const Borrower = ({ user, web3 }: any) => {
       {loading.loading && <Loader />}
       {contextHolder}
       <div className={classes.overviewBlock}>
+        <Button style={{ marginBottom: 10 }} onClick={() => navigate('/')}>
+          Back
+        </Button>
         <div className={classes.textWrapper}>
           <div className={classes.overviewTitle}>Address:</div>
           <div className={classes.overviewTitle}>{userAddress}</div>
