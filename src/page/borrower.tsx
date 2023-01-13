@@ -111,6 +111,7 @@ const Borrower = ({ user, web3 }: any) => {
   const { supplied, borrowed } = useSelector(
     (state: any) => state.userAssetsReducer
   )
+  const { tableParams } = useSelector((state: any) => state.tableParamsReducer)
   const loading = useSelector((state: any) => state.loadingReducer)
 
   const { userAddress } = useParams()
@@ -571,7 +572,12 @@ const Borrower = ({ user, web3 }: any) => {
       {loading.loading && <Loader />}
       {contextHolder}
       <div className={classes.overviewBlock}>
-        <Button style={{ marginBottom: 10 }} onClick={() => navigate('/')}>
+        <Button
+          style={{ marginBottom: 10 }}
+          onClick={() =>
+            navigate({ pathname: `/`, search: `?page=${tableParams.current}` })
+          }
+        >
           Back
         </Button>
         <div className={classes.textWrapper}>
