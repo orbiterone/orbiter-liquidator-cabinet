@@ -37,7 +37,6 @@ const TableOverview = () => {
 
   const { overview } = useSelector((state: any) => state.overviewReducer)
   const loading = useSelector((state: any) => state.loadingReducer)
-
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -52,6 +51,7 @@ const TableOverview = () => {
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
     navigate({ pathname: `/`, search: `?page=${pagination.current}` })
+    dispatch(setTableParams({ current: pagination.current }))
   }
 
   const calcState = (item: any) => {
