@@ -348,7 +348,7 @@ const Borrower = ({ user, web3 }: any) => {
     let health = item
     if (health < 1) {
       state = 'unsafe'
-    } else if (health <= 1.05) {
+    } else if (health >= 1 && health < 2) {
       state = 'risky'
     } else {
       state = 'safe'
