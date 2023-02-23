@@ -1,4 +1,4 @@
-# Getting Started with Orbiter Liquidator Cabinet
+# Getting Started with Orbiter One Liquidator Cabinet
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
