@@ -14,9 +14,7 @@ import { transform } from '../factory/bigNumber'
 import Input from 'antd/es/input/Input'
 import { commify } from '../utils'
 import Loader from '../components/Loader/Loader'
-import { setLoading } from '../redux/loading'
 import bigDecimal from 'js-big-decimal'
-import { log } from '@craco/craco/dist/lib/logger'
 const styles = createUseStyles({
   overviewBlock: {
     margin: '0 auto',
@@ -180,12 +178,13 @@ const Borrower = ({ user, web3 }: any) => {
     }).then((res) => {
       setHealth(res.data.data.positionHealth)
       if (
-        res.data.data.positionHealth.coefficient > 0.98 &&
+        res.data.data.positionHealth.coefficient > 0.98 ||
         res.data.data.totalBorrowed -
-          (1.1 / 1000) * res.data.data.totalBorrowed <=
+          (1.1 / 100) * res.data.data.totalBorrowed <=
           res.data.data.totalColateral
-      )
+      ) {
         setLocked(true)
+      }
     })
   }, [user.address])
 
@@ -488,12 +487,13 @@ const Borrower = ({ user, web3 }: any) => {
       }).then((res) => {
         setHealth(res.data.data.positionHealth)
         if (
-          res.data.data.positionHealth.coefficient > 0.98 &&
+          res.data.data.positionHealth.coefficient < 0.98 ||
           res.data.data.totalBorrowed -
-            (1.1 / 1000) * res.data.data.totalBorrowed <=
+            (1.1 / 100) * res.data.data.totalBorrowed <=
             res.data.data.totalColateral
-        )
+        ) {
           setLocked(true)
+        }
       })
       setBorrowedToken(null)
       setSuppliedToken(null)
