@@ -179,7 +179,13 @@ const Borrower = ({ user, web3 }: any) => {
       path: `users/${userAddress}`,
     }).then((res) => {
       setHealth(res.data.data.positionHealth)
-      if (res.data.data.positionHealth.coefficient > 1) setLocked(true)
+      if (
+        res.data.data.positionHealth.coefficient > 0.98 &&
+        res.data.data.totalBorrowed -
+          (1.1 / 1000) * res.data.data.totalBorrowed <=
+          res.data.data.totalColateral
+      )
+        setLocked(true)
     })
   }, [user.address])
 
@@ -346,9 +352,9 @@ const Borrower = ({ user, web3 }: any) => {
     let state = ''
 
     let health = item
-    if (health < 1) {
+    if (health < 0.98) {
       state = 'unsafe'
-    } else if (health >= 1 && health < 2) {
+    } else if (health >= 0.98 && health <= 1.25) {
       state = 'risky'
     } else {
       state = 'safe'
@@ -481,7 +487,13 @@ const Borrower = ({ user, web3 }: any) => {
         path: `users/${userAddress}`,
       }).then((res) => {
         setHealth(res.data.data.positionHealth)
-        if (res.data.data.positionHealth.coefficient > 1) setLocked(true)
+        if (
+          res.data.data.positionHealth.coefficient > 0.98 &&
+          res.data.data.totalBorrowed -
+            (1.1 / 1000) * res.data.data.totalBorrowed <=
+            res.data.data.totalColateral
+        )
+          setLocked(true)
       })
       setBorrowedToken(null)
       setSuppliedToken(null)
