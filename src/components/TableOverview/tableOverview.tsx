@@ -89,7 +89,7 @@ const TableOverview = () => {
       sorter: (a: any, b: any) => a.totalSupplyUSD - b.totalSupplyUSD,
       defaultSortOrder: 'descend',
       render: (value: string) => (
-        <Tooltip title={value}>
+        <Tooltip title={transform(value, 6)}>
           <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
@@ -99,7 +99,7 @@ const TableOverview = () => {
       dataIndex: 'totalBorrowUSD',
       sorter: (a: any, b: any) => a.totalBorrowUSD - b.totalBorrowUSD,
       render: (value: string) => (
-        <Tooltip title={value}>
+        <Tooltip title={transform(value, 6)}>
           <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
@@ -109,7 +109,7 @@ const TableOverview = () => {
       dataIndex: 'health',
       sorter: (a: any, b: any) => a.health - b.health,
       render: (value: string) => (
-        <Tooltip title={value}>
+        <Tooltip title={transform(value, 6)}>
           <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),

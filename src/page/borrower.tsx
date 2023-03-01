@@ -247,7 +247,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'supplied',
       width: '10%',
       render: (value: string) => (
-        <Tooltip title={value}>
+        <Tooltip title={transform(value, 25)}>
           <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
@@ -257,7 +257,7 @@ const Borrower = ({ user, web3 }: any) => {
       dataIndex: 'suppliedUSD',
       key: 'suppliedUSD',
       render: (value: string) => (
-        <Tooltip title={value}>
+        <Tooltip title={transform(value, 25)}>
           <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
@@ -268,7 +268,7 @@ const Borrower = ({ user, web3 }: any) => {
       width: '10%',
       render: (value: any) => (
         <input
-          disabled={locked}
+          disabled={calcState() === 'risky' || locked}
           type="radio"
           name="suppliedRadio"
           checked={setChecked(value, 'supplied')}
@@ -305,7 +305,7 @@ const Borrower = ({ user, web3 }: any) => {
       key: 'borrowed',
       width: '10%',
       render: (value: string) => (
-        <Tooltip title={value}>
+        <Tooltip title={transform(value, 25)}>
           <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
@@ -315,7 +315,7 @@ const Borrower = ({ user, web3 }: any) => {
       dataIndex: 'borrowedUSD',
       key: 'borrowedUSD',
       render: (value: string) => (
-        <Tooltip title={value}>
+        <Tooltip title={transform(value, 25)}>
           <span className={classes.tableText}>{transform(value)}</span>
         </Tooltip>
       ),
@@ -328,7 +328,7 @@ const Borrower = ({ user, web3 }: any) => {
       render: (value: any) => {
         return (
           <input
-            disabled={locked}
+            disabled={calcState() === 'risky' || locked}
             type="radio"
             name="borrowedRadio"
             checked={setChecked(value, 'borrowed')}
@@ -689,14 +689,20 @@ const Borrower = ({ user, web3 }: any) => {
             <div>
               <div className={classes.bottomMenuInfo}>
                 Your balance, {borrowedToken?.token.symbol}:{' '}
-                <Tooltip placement="topRight" title={tokenBalance}>
+                <Tooltip
+                  placement="topRight"
+                  title={transform(tokenBalance, 25)}
+                >
                   {transform(tokenBalance)}
                 </Tooltip>
               </div>
               <Tooltip
                 placement="topRight"
                 className={classes.bottomMenuInfoUSD}
-                title={borrowedToken?.token.lastPrice * tokenBalance}
+                title={transform(
+                  borrowedToken?.token.lastPrice * tokenBalance,
+                  25
+                )}
               >
                 ~${transform(borrowedToken?.token.lastPrice * tokenBalance)}
               </Tooltip>
@@ -704,7 +710,10 @@ const Borrower = ({ user, web3 }: any) => {
                 Max available to repay, {borrowedToken?.token.symbol}:{' '}
                 <Tooltip
                   placement="topRight"
-                  title={maxToRepay() / borrowedToken?.token.lastPrice}
+                  title={transform(
+                    maxToRepay() / borrowedToken?.token.lastPrice,
+                    25
+                  )}
                 >
                   {transform(maxToRepay() / borrowedToken?.token.lastPrice)}
                 </Tooltip>
@@ -712,7 +721,7 @@ const Borrower = ({ user, web3 }: any) => {
               <Tooltip
                 placement="topRight"
                 className={classes.bottomMenuInfoUSD}
-                title={maxToRepay()}
+                title={transform(maxToRepay(), 25)}
               >
                 ~${suppliedToken ? transform(maxToRepay().toString()) : 0}
               </Tooltip>
