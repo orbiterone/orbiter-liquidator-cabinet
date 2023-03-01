@@ -58,9 +58,9 @@ const TableOverview = () => {
     let state = ''
 
     let health = item
-    if (health <= 0.989) {
+    if (health <= 0.98) {
       state = 'unsafe'
-    } else if (health > 0.989 && health <= 1.25) {
+    } else if (health > 0.98 && health <= 1.25) {
       state = 'risky'
     } else {
       state = 'safe'

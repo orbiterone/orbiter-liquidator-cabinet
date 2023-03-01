@@ -178,7 +178,7 @@ const Borrower = ({ user, web3 }: any) => {
     }).then((res) => {
       setHealth(res.data.data.positionHealth)
       if (
-        res.data.data.positionHealth.coefficient > 0.989 ||
+        res.data.data.positionHealth.coefficient > 0.98 ||
         res.data.data.totalBorrowed -
           (1.1 / 100) * res.data.data.totalBorrowed <=
           res.data.data.totalColateral
@@ -351,9 +351,9 @@ const Borrower = ({ user, web3 }: any) => {
     let state = ''
 
     let health = item
-    if (health <= 0.989) {
+    if (health <= 0.98) {
       state = 'unsafe'
-    } else if (health > 0.989 && health <= 1.25) {
+    } else if (health > 0.98 && health <= 1.25) {
       state = 'risky'
     } else {
       state = 'safe'
@@ -487,7 +487,7 @@ const Borrower = ({ user, web3 }: any) => {
       }).then((res) => {
         setHealth(res.data.data.positionHealth)
         if (
-          res.data.data.positionHealth.coefficient < 0.989 ||
+          res.data.data.positionHealth.coefficient < 0.98 ||
           res.data.data.totalBorrowed -
             (1.1 / 100) * res.data.data.totalBorrowed <=
             res.data.data.totalColateral
