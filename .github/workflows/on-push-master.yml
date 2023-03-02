@@ -1,9 +1,9 @@
-name: DEV Auto deploy
+name: MASTER Auto deploy
 
 on:
   push:
     branches:
-      - dev
+      - master
 
 jobs:
   lint:
@@ -30,21 +30,23 @@ jobs:
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST_DEV }}
-          username: ${{ secrets.SSH_USERNAME_DEV }}
-          key: ${{ secrets.SSH_KEY_DEV }}
+          host: ${{ secrets.SSH_HOST_MASTER }}
+          username: ${{ secrets.SSH_USERNAME_MASTER }}
+          key: ${{ secrets.SSH_KEY_MASTER }}
           script_stop: true
           script: |
-            cd "${{ secrets.SSH_APP_PATH_DEV }}"
+            cd "${{ secrets.SSH_APP_PATH_MASTER }}"
             bash git-checkout-branch.sh "${{ github.ref_name }}"
             git pull origin ${{ github.ref_name }}
 
-            export APP_PORT=${{ secrets.APP_PORT_DEV }}
-            export INSTANCE_TYPE=${{ secrets.INSTANCE_TYPE_DEV }}
+            export APP_PORT=${{ secrets.APP_PORT_MASTER }}
+            export INSTANCE_TYPE=${{ secrets.INSTANCE_TYPE_MASTER }}
 
             rm -f .env.production
-            echo REACT_APP_X_ORBITER_LIQUIDATOR_API_KEY=${{ secrets.REACT_APP_X_ORBITER_LIQUIDATOR_API_KEY_DEV }} > .env.production
-            echo REACT_APP_X_ORBITER_LIQUIDATOR_API_URL=${{ secrets.REACT_APP_X_ORBITER_LIQUIDATOR_API_URL_DEV }} >> .env.production
+            echo REACT_APP_X_ORBITER_LIQUIDATOR_API_KEY=${{ secrets.REACT_APP_X_ORBITER_LIQUIDATOR_API_KEY_MASTER }} > .env.production
+            echo REACT_APP_X_ORBITER_LIQUIDATOR_API_URL=${{ secrets.REACT_APP_X_ORBITER_LIQUIDATOR_API_URL_MASTER }} >> .env.production
+            echo REACT_APP_X_ORBITER_CHAIN_ID=${{ secrets.REACT_APP_X_ORBITER_CHAIN_ID_MASTER }} >> .env.production
 
             export DOCKER_SCAN_SUGGEST=false
-            docker compose -f docker-stack.yml up -d --build
+            docker compose -f docker-stack.yml build --no-cache --compress
+            docker compose -f docker-stack.yml up -d
