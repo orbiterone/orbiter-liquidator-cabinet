@@ -288,7 +288,7 @@ function App() {
 
   return (
     <>
-      {user.address && user.chainId === CHAIN_ID ? (
+      {user && user.address && user.chainId === CHAIN_ID ? (
         <Routes>
           <Route
             path="/borrower/:userAddress"
@@ -315,7 +315,9 @@ function App() {
         <NotConnected
           connectWallet={handleConnectWallet}
           chainId={user.chainId}
+          userAdress={user.address}
           switchNetwork={switchNetwork}
+          CHAIN_ID={CHAIN_ID}
         />
       )}
     </>
