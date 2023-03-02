@@ -110,7 +110,10 @@ function App() {
                   options: {
                     // network: 'Moonbase Alpha',
                     rpc: {
-                      [CHAIN_ID]: 'https://rpc.api.moonbase.moonbeam.network/', // WalletConnect requires MAINNET rpc by default
+                      [CHAIN_ID]:
+                        CHAIN_ID === 1287
+                          ? 'https://rpc.api.moonbase.moonbeam.network/'
+                          : 'https://moonriver.public.blastapi.io', // WalletConnect requires MAINNET rpc by default
                       // [AppSettingsConfig.CHAIN_ID]: AppSettingsConfig.RPC_URL,
                     },
                     chainId: CHAIN_ID,
@@ -210,19 +213,34 @@ function App() {
       if (err.code === 4902) {
         await provider[WalletType[connectedWalletType]].request({
           method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainName: 'Moonbase Alpha',
-              chainId: web3.utils.toHex(CHAIN_ID),
-              nativeCurrency: {
-                name: 'DEV',
-                decimals: 18,
-                symbol: 'DEV',
-              },
-              rpcUrls: ['https://rpc.api.moonbase.moonbeam.network'],
-              blockExplorerUrls: ['https://moonbase.moonscan.io/'],
-            },
-          ],
+          params:
+            CHAIN_ID === 1287
+              ? [
+                  {
+                    chainName: 'Moonbase Alpha',
+                    chainId: web3.utils.toHex(CHAIN_ID),
+                    nativeCurrency: {
+                      name: 'DEV',
+                      decimals: 18,
+                      symbol: 'DEV',
+                    },
+                    rpcUrls: ['https://rpc.api.moonbase.moonbeam.network'],
+                    blockExplorerUrls: ['https://moonbase.moonscan.io/'],
+                  },
+                ]
+              : [
+                  {
+                    chainName: 'Moonriver',
+                    chainId: web3.utils.toHex(CHAIN_ID),
+                    nativeCurrency: {
+                      name: 'MOVR',
+                      decimals: 18,
+                      symbol: 'MOVR',
+                    },
+                    rpcUrls: ['https://moonriver.public.blastapi.io'],
+                    blockExplorerUrls: ['https://moonriver.moonscan.io/'],
+                  },
+                ],
         })
       }
     }
@@ -285,7 +303,7 @@ function App() {
       }
     })
   }
-
+  CHAIN_ID === 1287 ? console.log('1') : console.log('2')
   return (
     <>
       {user && user.address && user.chainId === CHAIN_ID ? (
