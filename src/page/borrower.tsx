@@ -607,7 +607,9 @@ const Borrower = ({ user, web3 }: any) => {
           <div className={classes.positionWrapper}>
             <div>{transform(health.coefficient, 2)}</div>
             <div className={classes.hr}></div>
-            <div>{transform(health.percentage, 2)}%</div>
+            <div>
+              {health.percentage > 100 ? 100 : transform(health.percentage, 2)}%
+            </div>
           </div>
         </div>
         <div className={classes.textWrapper}>
