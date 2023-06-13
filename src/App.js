@@ -111,9 +111,9 @@ function App() {
                     // network: 'Moonbase Alpha',
                     rpc: {
                       [CHAIN_ID]:
-                        CHAIN_ID === 1285
-                          ? 'https://moonriver.public.blastapi.io'
-                          : 'https://rpc.api.moonbase.moonbeam.network/',
+                        CHAIN_ID === 1287
+                          ? 'https://rpc.api.moonbase.moonbeam.network/'
+                          : 'https://1rpc.io/glmr',
                     },
                     chainId: CHAIN_ID,
                   },
@@ -213,21 +213,8 @@ function App() {
         await provider[WalletType[connectedWalletType]].request({
           method: 'wallet_addEthereumChain',
           params:
-            CHAIN_ID === 1285
+            CHAIN_ID === 1287
               ? [
-                  {
-                    chainName: 'Moonriver',
-                    chainId: web3.utils.toHex(CHAIN_ID),
-                    nativeCurrency: {
-                      name: 'MOVR',
-                      decimals: 18,
-                      symbol: 'MOVR',
-                    },
-                    rpcUrls: ['https://moonriver.public.blastapi.io'],
-                    blockExplorerUrls: ['https://moonriver.moonscan.io/'],
-                  },
-                ]
-              : [
                   {
                     chainName: 'Moonbase Alpha',
                     chainId: web3.utils.toHex(CHAIN_ID),
@@ -238,6 +225,19 @@ function App() {
                     },
                     rpcUrls: ['https://rpc.api.moonbase.moonbeam.network'],
                     blockExplorerUrls: ['https://moonbase.moonscan.io/'],
+                  },
+                ]
+              : [
+                  {
+                    chainName: 'Moonbeam',
+                    chainId: 1284,
+                    nativeCurrency: {
+                      name: 'GLMR',
+                      decimals: 18,
+                      symbol: 'GLMR',
+                    },
+                    rpcUrls: ['https://rpc.api.moonbeam.network'],
+                    blockExplorerUrls: ['https://moonbeam.moonscan.io/'],
                   },
                 ],
         })
