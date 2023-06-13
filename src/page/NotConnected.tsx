@@ -34,7 +34,7 @@ const NotConnected: React.FC<Props> = ({
   }
   return (
     <>
-      {loading.loading && <Loader />}
+      {/*{loading.loading && <Loader />}*/}
       <div className={classes.button}>
         <Button
           size="large"
