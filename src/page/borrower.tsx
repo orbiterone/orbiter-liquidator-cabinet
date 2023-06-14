@@ -109,6 +109,8 @@ const Borrower = ({ user, web3 }: any) => {
   const { supplied, borrowed } = useSelector(
     (state: any) => state.userAssetsReducer
   )
+  const { chain } = useSelector((state) => state.appChainReducer)
+
   const { tableParams } = useSelector((state: any) => state.tableParamsReducer)
   const loading = useSelector((state: any) => state.loadingReducer)
 
@@ -235,7 +237,7 @@ const Borrower = ({ user, web3 }: any) => {
         <a
           className={classes.addressLink}
           target="_blank"
-          href={`https://moonbase.moonscan.io/address/${text}`}
+          href={`${chain.chainData.blockExplorerUrls[0]}address/${text}`}
         >
           {text}
         </a>
@@ -293,7 +295,7 @@ const Borrower = ({ user, web3 }: any) => {
         <a
           className={classes.addressLink}
           target="_blank"
-          href={`https://moonbase.moonscan.io/address/${text}`}
+          href={`${chain.chainData.blockExplorerUrls[0]}address/${text}`}
         >
           {text}
         </a>
