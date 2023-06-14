@@ -8,6 +8,9 @@ import Web3 from 'web3'
 import Web3Modal from 'web3modal'
 import WalletConnectProvider from '@walletconnect/web3-provider'
 import NotConnected from './page/NotConnected'
+import { setAppChain } from './redux/appChain'
+import { CHAINS } from './utils/networkConst'
+import { useDispatch } from 'react-redux'
 
 const CHAIN_ID = +process.env.REACT_APP_X_ORBITER_CHAIN_ID
 
@@ -31,8 +34,11 @@ function App() {
     connected: false,
   })
 
+  const dispatch = useDispatch()
+
   useEffect(() => {
     connectWallet('metamask')
+    dispatch(setAppChain(CHAINS[process.env.REACT_APP_X_ORBITER_CHAIN_ID]))
   }, [])
 
   const createProviderMetamask = async (force = true) => {

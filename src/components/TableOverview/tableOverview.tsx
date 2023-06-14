@@ -35,6 +35,8 @@ const TableOverview = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
+  const { chain } = useSelector((state) => state.appChainReducer)
+
   const { overview } = useSelector((state: any) => state.overviewReducer)
   const loading = useSelector((state: any) => state.loadingReducer)
   const dispatch = useDispatch()
@@ -76,7 +78,7 @@ const TableOverview = () => {
       render: (value: string) => (
         <a
           className={classes.addressLink}
-          href={`https://moonbase.moonscan.io/address/${value}`}
+          href={`${chain.chainData.blockExplorerUrls[0]}address/${value}`}
           target="_blank"
         >
           {value}
