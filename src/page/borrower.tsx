@@ -23,6 +23,16 @@ const styles = createUseStyles({
   overviewTitle: {
     color: 'black',
   },
+  total: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    marginRight: 100,
+    marginTop: 10,
+    marginBottom: 10,
+    color: '#000000E0',
+    fontSize: '16px',
+    lineHeight: '18px',
+  },
   overviewTableBlock: {},
   textWrapper: {
     paddingBottom: 10,
@@ -102,6 +112,8 @@ const Borrower = ({ user, web3 }: any) => {
   const [suppliedCheckbox, setSuppliedCheckbox] = useState<any>(false)
   const [locked, setLocked] = useState<any>(false)
   const [inputValue, setInputValue] = useState<any>('')
+  const [totalBorrowed, setTotalBorrowed] = useState<any>('')
+  const [totalSupplied, setTotalSuplied] = useState<any>('')
 
   const [api, contextHolder] = notification.useNotification()
   const navigate = useNavigate()
@@ -173,7 +185,11 @@ const Borrower = ({ user, web3 }: any) => {
     request({
       method: 'get',
       path: `assets/${userAddress}`,
-    }).then((res) => dispatch(setUserAssets(res.data.data)))
+    }).then((res) => {
+      dispatch(setUserAssets(res.data.data))
+      setTotalBorrowed(res.data.data.totalBorrowUSD)
+      setTotalSuplied(res.data.data.totalSupplyUSD)
+    })
     request({
       method: 'get',
       path: `users/${userAddress}`,
@@ -220,7 +236,6 @@ const Borrower = ({ user, web3 }: any) => {
       }
     }
   }
-
   const columns = [
     {
       title: 'Symbol',
@@ -639,6 +654,9 @@ const Borrower = ({ user, web3 }: any) => {
           size="small"
           dataSource={supplied}
         />
+        <div className={classes.total}>
+          Total Supplied, $: {transform(totalSupplied, 4)}
+        </div>
         <div className={classes.blockWrapper}>
           Choose a different asset to repay on behalf of borrower to return
           their Account Health to under to 100:
@@ -649,6 +667,9 @@ const Borrower = ({ user, web3 }: any) => {
           pagination={false}
           dataSource={borrowed}
         />
+        <div className={classes.total}>
+          Total Borrowed, $: {transform(totalBorrowed, 4)}
+        </div>
         <div className={classes.bottomMenuWrapper}>
           <div>
             <div className={classes.bottomMenuOperationWrapper}>
