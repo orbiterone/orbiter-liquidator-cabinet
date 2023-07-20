@@ -402,12 +402,33 @@ const Borrower = ({ user, web3 }: any) => {
       'info'
     )
     try {
-      const result = await tokenContract.methods
+      let gasPrice = await web3.eth.getGasPrice()
+
+      gasPrice = +gasPrice
+      gasPrice += gasPrice
+
+      let gasLimit = await tokenContract.methods
         .approve(
           asset.token.oTokenAddress,
           toBn(`${value}`, asset.token.tokenDecimal).toString()
         )
-        .send({ from: user.address })
+        .estimateGas({
+          from: user.address,
+        })
+
+      gasLimit = +gasLimit
+      gasLimit += gasLimit
+
+      const result = await tokenContract.methods
+        .approve(
+          asset.token.oTokenAddress,
+          toBn(`${99999}`, asset.token.tokenDecimal).toString()
+        )
+        .send({
+          from: user.address,
+          gasLimit: web3.utils.toHex(Math.round(gasLimit)),
+          gasPrice: web3.utils.toHex(Math.round(gasPrice)),
+        })
         .on(
           'transactionHash',
           (hash: string) =>
@@ -448,11 +469,26 @@ const Borrower = ({ user, web3 }: any) => {
     )
     try {
       if (!borrowedAsset.token.tokenAddress) {
+        let gasPrice = await web3.eth.getGasPrice()
+
+        gasPrice = +gasPrice
+        gasPrice += gasPrice
+
+        let gasLimit = await tokenContract.methods
+          .liquidateBorrow(userAddress, asset.token.oTokenAddress)
+          .estimateGas({
+            from: user.address,
+          })
+
+        gasLimit = +gasLimit
+        gasLimit += gasLimit
+
         result = await tokenContract.methods
           .liquidateBorrow(userAddress, asset.token.oTokenAddress)
           .send({
             from: user.address,
-            gasLimit: web3.utils.toHex(12990000),
+            gasLimit: web3.utils.toHex(Math.round(gasLimit)),
+            gasPrice: web3.utils.toHex(Math.round(gasPrice)),
             value: toBn(
               `${value}`,
               borrowedAsset.token.tokenDecimal
@@ -469,6 +505,24 @@ const Borrower = ({ user, web3 }: any) => {
               )
           )
       } else {
+        let gasPrice = await web3.eth.getGasPrice()
+
+        gasPrice = +gasPrice
+        gasPrice += gasPrice
+
+        let gasLimit = await tokenContract.methods
+          .liquidateBorrow(
+            userAddress,
+            toBn(`${value}`, borrowedAsset.token.tokenDecimal).toString(),
+            asset.token.oTokenAddress
+          )
+          .estimateGas({
+            from: user.address,
+          })
+
+        gasLimit = +gasLimit
+        gasLimit += gasLimit
+
         result = await tokenContract.methods
           .liquidateBorrow(
             userAddress,
@@ -476,7 +530,8 @@ const Borrower = ({ user, web3 }: any) => {
             asset.token.oTokenAddress
           )
           .send({
-            gasLimit: web3.utils.toHex(12990000),
+            gasLimit: web3.utils.toHex(Math.round(gasLimit)),
+            gasPrice: web3.utils.toHex(Math.round(gasPrice)),
             from: user.address,
           })
           .on(
