@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, {useEffect, useState, useRef} from 'react'
 import { Table, Button, Tag, Tooltip } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { createUseStyles } from 'react-jss'
@@ -7,10 +7,11 @@ import { request } from '../../factory/axios'
 import { setOverview } from 'src/redux/overview'
 import type { TablePaginationConfig } from 'antd/es/table'
 import { transform } from '../../factory/bigNumber'
-import { setTableParams } from 'src/redux/tableParams'
+import tableParams, { setTableParams } from 'src/redux/tableParams'
 import Loader from '../Loader/Loader'
 import { setLoading } from '../../redux/loading'
 import { useSearchParams } from 'react-router-dom'
+import {FilterValue, SorterResult} from "antd/es/table/interface";
 
 const styles = createUseStyles({
   addressLink: {
@@ -30,6 +31,13 @@ const styles = createUseStyles({
   },
 })
 
+interface TableParams {
+  pagination?: TablePaginationConfig;
+  sortField?: string;
+  sortOrder?: string;
+  filters?: Record<string, FilterValue>;
+}
+
 const TableOverview = () => {
   const classes = styles()
   const navigate = useNavigate()
@@ -38,6 +46,7 @@ const TableOverview = () => {
   const { chain } = useSelector((state) => state.appChainReducer)
 
   const { overview } = useSelector((state: any) => state.overviewReducer)
+  const { tableParams } = useSelector((state: any) => state.tableParamsReducer)
   const loading = useSelector((state: any) => state.loadingReducer)
   const dispatch = useDispatch()
 
@@ -45,15 +54,44 @@ const TableOverview = () => {
     dispatch(setLoading(true))
     request({
       method: 'get',
-      path: `users?page=${searchParams.get('page') || 1}`,
+      path: `users?page=${searchParams.get('page') || 1}${getParams(tableParams)}`,
     }).then((res) => {
       dispatch(setOverview(res.data.data))
     })
-  }, [searchParams.get('page')])
+  }, [searchParams.get('page'), tableParams])
 
-  const handleTableChange = (pagination: TablePaginationConfig) => {
+  const paramsName = (tableParamsOrder: string) => {
+    if (tableParamsOrder === 'descend') {
+      return 'asc'
+    }
+    if (tableParamsOrder === 'ascend') {
+      return 'desc'
+    }
+    return ''
+  }
+  const getParams = (tableParams) => {
+    if (tableParams.order && tableParams.filters?.health?.length) {
+      return `&sort=${tableParams.field}&order=${paramsName(tableParams.order)}&state=${tableParams.filters.health.map((el) => `${el}`)}`
+    }
+    if (tableParams.order) {
+      return `&sort=${tableParams.field}&order=${paramsName(tableParams.order)}`
+    }
+    if (tableParams.filters?.health?.length) {
+      return `&state=${tableParams.filters.health.map((el) => `${el}`)}`
+    }
+    return ''
+  }
+
+  const handleTableChange = (pagination: TablePaginationConfig,
+                             filters: Record<string, FilterValue>,
+                             sorter: SorterResult<any>) => {
     navigate({ pathname: `/`, search: `?page=${pagination.current}` })
-    dispatch(setTableParams({ current: pagination.current }))
+    dispatch(
+    setTableParams({
+      current: pagination.current,
+      filters,
+      ...sorter,
+    }))
   }
 
   const calcState = (item: any) => {
@@ -88,8 +126,7 @@ const TableOverview = () => {
     {
       title: 'Supply,$',
       dataIndex: 'totalSupplyUSD',
-      sorter: (a: any, b: any) => a.totalSupplyUSD - b.totalSupplyUSD,
-      defaultSortOrder: 'descend',
+      sorter: true,
       render: (value: string) => (
         <Tooltip title={transform(value, 6)}>
           <span className={classes.tableText}>{transform(value)}</span>
@@ -99,7 +136,7 @@ const TableOverview = () => {
     {
       title: 'Borrow,$',
       dataIndex: 'totalBorrowUSD',
-      sorter: (a: any, b: any) => a.totalBorrowUSD - b.totalBorrowUSD,
+      sorter: true,
       render: (value: string) => (
         <Tooltip title={transform(value, 6)}>
           <span className={classes.tableText}>{transform(value)}</span>
@@ -109,7 +146,15 @@ const TableOverview = () => {
     {
       title: 'Health coefficient',
       dataIndex: 'health',
-      sorter: (a: any, b: any) => a.health - b.health,
+      sorter: true,
+      filterMultiple: false,
+      // sorter: (a: any, b, sortOrder) => {
+      //   console.log(sortOrder, 'sortOrder', sortedBy.current.order, 'sortedBy.current.order')
+      //   sortedBy.current = {
+      //     column: 'health',
+      //     order: sortOrder === sortedBy.current.order ? '' : sortOrder
+      //   }
+      // },
       render: (value: string) => (
         <Tooltip title={transform(value, 6)}>
           <span className={classes.tableText}>{transform(value)}</span>
@@ -125,8 +170,7 @@ const TableOverview = () => {
         { text: 'Unsafe', value: 'unsafe' },
         { text: 'Risky', value: 'risky' },
       ],
-      onFilter: (value: string, record: any) =>
-        calcState(record.health).indexOf(value) === 0,
+
       render: (value: string, record: any) => (
         <span className={classes.tableText}>
           <Tag
