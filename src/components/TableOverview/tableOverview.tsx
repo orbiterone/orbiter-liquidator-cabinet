@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Table, Button, Tag, Tooltip } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { createUseStyles } from 'react-jss'
@@ -11,7 +11,7 @@ import tableParams, { setTableParams } from 'src/redux/tableParams'
 import Loader from '../Loader/Loader'
 import { setLoading } from '../../redux/loading'
 import { useSearchParams } from 'react-router-dom'
-import {FilterValue, SorterResult} from "antd/es/table/interface";
+import { FilterValue, SorterResult } from 'antd/es/table/interface'
 
 const styles = createUseStyles({
   addressLink: {
@@ -32,10 +32,10 @@ const styles = createUseStyles({
 })
 
 interface TableParams {
-  pagination?: TablePaginationConfig;
-  sortField?: string;
-  sortOrder?: string;
-  filters?: Record<string, FilterValue>;
+  pagination?: TablePaginationConfig
+  sortField?: string
+  sortOrder?: string
+  filters?: Record<string, FilterValue>
 }
 
 const TableOverview = () => {
@@ -54,7 +54,9 @@ const TableOverview = () => {
     dispatch(setLoading(true))
     request({
       method: 'get',
-      path: `users?page=${searchParams.get('page') || 1}${getParams(tableParams)}`,
+      path: `users?page=${searchParams.get('page') || 1}${getParams(
+        tableParams
+      )}`,
     }).then((res) => {
       dispatch(setOverview(res.data.data))
     })
@@ -71,7 +73,9 @@ const TableOverview = () => {
   }
   const getParams = (tableParams) => {
     if (tableParams.order && tableParams.filters?.health?.length) {
-      return `&sort=${tableParams.field}&order=${paramsName(tableParams.order)}&state=${tableParams.filters.health.map((el) => `${el}`)}`
+      return `&sort=${tableParams.field}&order=${paramsName(
+        tableParams.order
+      )}&state=${tableParams.filters.health.map((el) => `${el}`)}`
     }
     if (tableParams.order) {
       return `&sort=${tableParams.field}&order=${paramsName(tableParams.order)}`
@@ -82,16 +86,19 @@ const TableOverview = () => {
     return ''
   }
 
-  const handleTableChange = (pagination: TablePaginationConfig,
-                             filters: Record<string, FilterValue>,
-                             sorter: SorterResult<any>) => {
+  const handleTableChange = (
+    pagination: TablePaginationConfig,
+    filters: Record<string, FilterValue>,
+    sorter: SorterResult<any>
+  ) => {
     navigate({ pathname: `/`, search: `?page=${pagination.current}` })
     dispatch(
-    setTableParams({
-      current: pagination.current,
-      filters,
-      ...sorter,
-    }))
+      setTableParams({
+        current: pagination.current,
+        filters,
+        ...sorter,
+      })
+    )
   }
 
   const calcState = (item: any) => {

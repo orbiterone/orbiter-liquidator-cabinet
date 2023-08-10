@@ -1,14 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import {FilterValue} from "antd/es/table/interface";
+import { FilterValue } from 'antd/es/table/interface'
 
 export interface tableParams {
   tableParams: {
     current: number
     pageSize: number
-    sortField?: string;
-    sortOrder?: string;
-    filters?: Record<string, FilterValue>;
+    sortField?: string
+    sortOrder?: string
+    filters?: Record<string, FilterValue>
   }
 }
 
