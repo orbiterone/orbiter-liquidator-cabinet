@@ -166,7 +166,7 @@ const Borrower = ({ user, web3 }: any) => {
   // @ts-ignore
   const zeroInInput = !(inputValue.replace(/[\s,]/g, '') == 0)
 
-  const closeFactor = 0.33
+  const closeFactor = 0.5
 
   const maxToRepay = () => {
     const maxToRepayUSD =
@@ -196,7 +196,7 @@ const Borrower = ({ user, web3 }: any) => {
     }).then((res) => {
       setHealth(res.data.data.positionHealth)
       if (
-        res.data.data.positionHealth.coefficient > 0.98 ||
+        res.data.data.positionHealth.coefficient > 0.985 ||
         res.data.data.totalBorrowed -
           (1.1 / 100) * res.data.data.totalBorrowed <=
           res.data.data.totalColateral
@@ -368,7 +368,7 @@ const Borrower = ({ user, web3 }: any) => {
     let state = ''
 
     let health = item
-    if (health <= 0.98) {
+    if (health <= 0.985) {
       state = 'unsafe'
     } else if (health > 0.98 && health <= 1.25) {
       state = 'risky'
@@ -559,7 +559,7 @@ const Borrower = ({ user, web3 }: any) => {
       }).then((res) => {
         setHealth(res.data.data.positionHealth)
         if (
-          res.data.data.positionHealth.coefficient < 0.98 ||
+          res.data.data.positionHealth.coefficient < 0.985 ||
           res.data.data.totalBorrowed -
             (1.1 / 100) * res.data.data.totalBorrowed <=
             res.data.data.totalColateral
