@@ -114,6 +114,7 @@ const Borrower = ({ user, web3 }: any) => {
   const [inputValue, setInputValue] = useState<any>('')
   const [totalBorrowed, setTotalBorrowed] = useState<any>('')
   const [totalSupplied, setTotalSuplied] = useState<any>('')
+  const [tokenAllowance, setTokenAllowance] = useState('0')
 
   const [api, contextHolder] = notification.useNotification()
   const navigate = useNavigate()
@@ -620,6 +621,26 @@ const Borrower = ({ user, web3 }: any) => {
     setSuppliedCheckbox({ symbol: value.token.symbol, checked: true })
   }
 
+  const checkAllowance = async () => {
+    const asset = borrowedToken
+    const { tokenContract } = await defineContracts(
+      asset,
+      !asset.token.tokenAddress
+    )
+
+    try {
+      const result = await tokenContract.methods
+        .allowance(user.address, asset.token.oTokenAddress)
+        .call()
+
+      setTokenAllowance(
+        fromBn(result, borrowedToken.token.tokenDecimal).toString()
+      )
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const handleRepay = async () => {
     const value = inputValue.replace(/[\s,]/g, '')
     const asset = borrowedToken
@@ -628,7 +649,9 @@ const Borrower = ({ user, web3 }: any) => {
       asset,
       !asset.token.tokenAddress
     )
-    if (asset.token.tokenAddress) {
+    await checkAllowance()
+
+    if (asset.token.tokenAddress && +tokenAllowance < +value) {
       await approve(asset, value, tokenContract)
     }
 
@@ -734,7 +757,9 @@ const Borrower = ({ user, web3 }: any) => {
                     width: '250px',
                   }}
                   disabled={!disable}
-                  placeholder={`Enter ${borrowedToken?.token.symbol} amount`}
+                  placeholder={`Enter ${
+                    borrowedToken?.token?.symbol || ''
+                  } amount`}
                   value={inputValue}
                   onChange={(e) =>
                     setInputValue(
