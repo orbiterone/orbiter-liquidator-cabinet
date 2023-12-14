@@ -99,6 +99,8 @@ const styles = createUseStyles({
   },
 })
 
+const INFINITY_NUMBER = 115792089237316195423570985008687907853269984665640564039457.584007913129
+
 const Borrower = ({ user, web3 }: any) => {
   const [health, setHealth] = useState<any>({
     coefficient: null,
@@ -129,6 +131,9 @@ const Borrower = ({ user, web3 }: any) => {
 
   const { userAddress } = useParams()
   const dispatch = useDispatch()
+
+  const classes = styles()
+
   const openNotification = (
     message: string,
     description: string,
@@ -179,6 +184,14 @@ const Borrower = ({ user, web3 }: any) => {
   }
 
   useEffect(() => {
+    initFunction()
+  }, [user.address])
+
+  useEffect(() => {
+    setInputValue('')
+  }, [suppliedToken, borrowedToken])
+
+  const initFunction = () => {
     setSuppliedToken(null)
     setBorrowedToken(null)
     setSuppliedCheckbox(false)
@@ -205,13 +218,7 @@ const Borrower = ({ user, web3 }: any) => {
         setLocked(true)
       }
     })
-  }, [user.address])
-
-  useEffect(() => {
-    setInputValue('')
-  }, [suppliedToken, borrowedToken])
-
-  const classes = styles()
+  }
 
   const setChecked = (value: any, type: any) => {
     switch (type) {
@@ -420,10 +427,10 @@ const Borrower = ({ user, web3 }: any) => {
       gasLimit = +gasLimit
       gasLimit += gasLimit
 
-      const result = await tokenContract.methods
+      await tokenContract.methods
         .approve(
           asset.token.oTokenAddress,
-          toBn(`${99999}`, asset.token.tokenDecimal).toString()
+          toBn(`${INFINITY_NUMBER}`, asset.token.tokenDecimal).toString()
         )
         .send({
           from: user.address,
@@ -445,14 +452,12 @@ const Borrower = ({ user, web3 }: any) => {
         'Complete your transaction in your wallet.',
         'success'
       )
-      console.log('approve:', result)
     } catch (error) {
       openNotification(
         'Denied the transaction',
         'You denied the transaction request in your wallet. Please resubmit your transaction.',
         'error'
       )
-      console.log(error)
     }
   }
 
@@ -652,12 +657,17 @@ const Borrower = ({ user, web3 }: any) => {
     await checkAllowance()
 
     if (asset.token.tokenAddress && +tokenAllowance < +value) {
-      await approve(asset, value, tokenContract)
+      try {
+        await approve(asset, value, tokenContract)
+      } catch (e) {
+        return
+      }
     }
 
     await liquidateBorrow(suppliedAsset, value, marketContract, asset)
     await getTokenBalance(tokenContract, asset, !asset.token.tokenAddress)
     setInputValue('')
+    initFunction()
   }
 
   const setMaxInInput = () => {
