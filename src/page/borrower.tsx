@@ -99,7 +99,8 @@ const styles = createUseStyles({
   },
 })
 
-const INFINITY_NUMBER = '115792089237316195423570985008687907853269984665640564039457.584007913129639935'
+const INFINITY_NUMBER =
+  '115792089237316195423570985008687907853269984665640564039457.584007913129639935'
 
 const Borrower = ({ user, web3 }: any) => {
   const [health, setHealth] = useState<any>({
@@ -647,7 +648,7 @@ const Borrower = ({ user, web3 }: any) => {
     } catch (error) {
       return
     }
-    
+
     if (asset.token.tokenAddress && +allowance < +value) {
       try {
         await approve(asset, value, tokenContract)
