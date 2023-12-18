@@ -99,7 +99,8 @@ const styles = createUseStyles({
   },
 })
 
-const INFINITY_NUMBER = 115792089237316195423570985008687907853269984665640564039457.584007913129
+const INFINITY_NUMBER =
+  '115792089237316195423570985008687907853269984665640564039457.584007913129639935'
 
 const Borrower = ({ user, web3 }: any) => {
   const [health, setHealth] = useState<any>({
@@ -191,12 +192,12 @@ const Borrower = ({ user, web3 }: any) => {
     setInputValue('')
   }, [suppliedToken, borrowedToken])
 
-  const initFunction = () => {
+  const initFunction = async () => {
     setSuppliedToken(null)
     setBorrowedToken(null)
     setSuppliedCheckbox(false)
     setBorrowedCheckbox(false)
-    request({
+    await request({
       method: 'get',
       path: `assets/${userAddress}`,
     }).then((res) => {
@@ -204,16 +205,16 @@ const Borrower = ({ user, web3 }: any) => {
       setTotalBorrowed(res.data.data.totalBorrowUSD)
       setTotalSuplied(res.data.data.totalSupplyUSD)
     })
-    request({
+    await request({
       method: 'get',
       path: `users/${userAddress}`,
     }).then((res) => {
       setHealth(res.data.data.positionHealth)
       if (
-        res.data.data.positionHealth.coefficient > 0.985 ||
-        res.data.data.totalBorrowed -
-          (1.1 / 100) * res.data.data.totalBorrowed <=
-          res.data.data.totalColateral
+        +res.data.data.positionHealth.coefficient > 0.985 ||
+        +res.data.data.totalBorrowed -
+          (1.1 / 100) * +res.data.data.totalBorrowed <=
+          +res.data.data.totalColateral
       ) {
         setLocked(true)
       }
@@ -261,6 +262,7 @@ const Borrower = ({ user, web3 }: any) => {
           className={classes.addressLink}
           target="_blank"
           href={`${chain.chainData.blockExplorerUrls[0]}address/${text}`}
+          rel="noreferrer"
         >
           {text}
         </a>
@@ -458,6 +460,7 @@ const Borrower = ({ user, web3 }: any) => {
         'You denied the transaction request in your wallet. Please resubmit your transaction.',
         'error'
       )
+      throw error
     }
   }
 
@@ -565,10 +568,10 @@ const Borrower = ({ user, web3 }: any) => {
       }).then((res) => {
         setHealth(res.data.data.positionHealth)
         if (
-          res.data.data.positionHealth.coefficient < 0.985 ||
-          res.data.data.totalBorrowed -
-            (1.1 / 100) * res.data.data.totalBorrowed <=
-            res.data.data.totalColateral
+          +res.data.data.positionHealth.coefficient > 0.985 ||
+          +res.data.data.totalBorrowed -
+            (1.1 / 100) * +res.data.data.totalBorrowed <=
+            +res.data.data.totalColateral
         ) {
           setLocked(true)
         }
@@ -626,26 +629,6 @@ const Borrower = ({ user, web3 }: any) => {
     setSuppliedCheckbox({ symbol: value.token.symbol, checked: true })
   }
 
-  const checkAllowance = async () => {
-    const asset = borrowedToken
-    const { tokenContract } = await defineContracts(
-      asset,
-      !asset.token.tokenAddress
-    )
-
-    try {
-      const result = await tokenContract.methods
-        .allowance(user.address, asset.token.oTokenAddress)
-        .call()
-
-      setTokenAllowance(
-        fromBn(result, borrowedToken.token.tokenDecimal).toString()
-      )
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
   const handleRepay = async () => {
     const value = inputValue.replace(/[\s,]/g, '')
     const asset = borrowedToken
@@ -654,9 +637,19 @@ const Borrower = ({ user, web3 }: any) => {
       asset,
       !asset.token.tokenAddress
     )
-    await checkAllowance()
+    let allowance = 0
 
-    if (asset.token.tokenAddress && +tokenAllowance < +value) {
+    try {
+      const result = await tokenContract.methods
+        .allowance(user.address, asset.token.oTokenAddress)
+        .call()
+
+      allowance = +fromBn(result, borrowedToken.token.tokenDecimal).toString()
+    } catch (error) {
+      return
+    }
+
+    if (asset.token.tokenAddress && +allowance < +value) {
       try {
         await approve(asset, value, tokenContract)
       } catch (e) {
