@@ -99,6 +99,9 @@ const styles = createUseStyles({
   },
 })
 
+const INFINITY_NUMBER =
+  '115792089237316195423570985008687907853269984665640564039457.584007913129639935'
+
 const Borrower = ({ user, web3 }: any) => {
   const [health, setHealth] = useState<any>({
     coefficient: null,
@@ -114,6 +117,7 @@ const Borrower = ({ user, web3 }: any) => {
   const [inputValue, setInputValue] = useState<any>('')
   const [totalBorrowed, setTotalBorrowed] = useState<any>('')
   const [totalSupplied, setTotalSuplied] = useState<any>('')
+  const [tokenAllowance, setTokenAllowance] = useState('0')
 
   const [api, contextHolder] = notification.useNotification()
   const navigate = useNavigate()
@@ -128,6 +132,9 @@ const Borrower = ({ user, web3 }: any) => {
 
   const { userAddress } = useParams()
   const dispatch = useDispatch()
+
+  const classes = styles()
+
   const openNotification = (
     message: string,
     description: string,
@@ -178,11 +185,19 @@ const Borrower = ({ user, web3 }: any) => {
   }
 
   useEffect(() => {
+    initFunction()
+  }, [user.address])
+
+  useEffect(() => {
+    setInputValue('')
+  }, [suppliedToken, borrowedToken])
+
+  const initFunction = async () => {
     setSuppliedToken(null)
     setBorrowedToken(null)
     setSuppliedCheckbox(false)
     setBorrowedCheckbox(false)
-    request({
+    await request({
       method: 'get',
       path: `assets/${userAddress}`,
     }).then((res) => {
@@ -190,27 +205,21 @@ const Borrower = ({ user, web3 }: any) => {
       setTotalBorrowed(res.data.data.totalBorrowUSD)
       setTotalSuplied(res.data.data.totalSupplyUSD)
     })
-    request({
+    await request({
       method: 'get',
       path: `users/${userAddress}`,
     }).then((res) => {
       setHealth(res.data.data.positionHealth)
       if (
-        res.data.data.positionHealth.coefficient > 0.985 ||
-        res.data.data.totalBorrowed -
-          (1.1 / 100) * res.data.data.totalBorrowed <=
-          res.data.data.totalColateral
+        +res.data.data.positionHealth.coefficient > 0.985 ||
+        +res.data.data.totalBorrowed -
+          (1.1 / 100) * +res.data.data.totalBorrowed <=
+          +res.data.data.totalColateral
       ) {
         setLocked(true)
       }
     })
-  }, [user.address])
-
-  useEffect(() => {
-    setInputValue('')
-  }, [suppliedToken, borrowedToken])
-
-  const classes = styles()
+  }
 
   const setChecked = (value: any, type: any) => {
     switch (type) {
@@ -253,6 +262,7 @@ const Borrower = ({ user, web3 }: any) => {
           className={classes.addressLink}
           target="_blank"
           href={`${chain.chainData.blockExplorerUrls[0]}address/${text}`}
+          rel="noreferrer"
         >
           {text}
         </a>
@@ -419,10 +429,10 @@ const Borrower = ({ user, web3 }: any) => {
       gasLimit = +gasLimit
       gasLimit += gasLimit
 
-      const result = await tokenContract.methods
+      await tokenContract.methods
         .approve(
           asset.token.oTokenAddress,
-          toBn(`${99999}`, asset.token.tokenDecimal).toString()
+          toBn(`${INFINITY_NUMBER}`, asset.token.tokenDecimal).toString()
         )
         .send({
           from: user.address,
@@ -444,14 +454,13 @@ const Borrower = ({ user, web3 }: any) => {
         'Complete your transaction in your wallet.',
         'success'
       )
-      console.log('approve:', result)
     } catch (error) {
       openNotification(
         'Denied the transaction',
         'You denied the transaction request in your wallet. Please resubmit your transaction.',
         'error'
       )
-      console.log(error)
+      throw error
     }
   }
 
@@ -559,10 +568,10 @@ const Borrower = ({ user, web3 }: any) => {
       }).then((res) => {
         setHealth(res.data.data.positionHealth)
         if (
-          res.data.data.positionHealth.coefficient < 0.985 ||
-          res.data.data.totalBorrowed -
-            (1.1 / 100) * res.data.data.totalBorrowed <=
-            res.data.data.totalColateral
+          +res.data.data.positionHealth.coefficient > 0.985 ||
+          +res.data.data.totalBorrowed -
+            (1.1 / 100) * +res.data.data.totalBorrowed <=
+            +res.data.data.totalColateral
         ) {
           setLocked(true)
         }
@@ -628,13 +637,30 @@ const Borrower = ({ user, web3 }: any) => {
       asset,
       !asset.token.tokenAddress
     )
-    if (asset.token.tokenAddress) {
-      await approve(asset, value, tokenContract)
+    let allowance = 0
+
+    try {
+      const result = await tokenContract.methods
+        .allowance(user.address, asset.token.oTokenAddress)
+        .call()
+
+      allowance = +fromBn(result, borrowedToken.token.tokenDecimal).toString()
+    } catch (error) {
+      return
+    }
+
+    if (asset.token.tokenAddress && +allowance < +value) {
+      try {
+        await approve(asset, value, tokenContract)
+      } catch (e) {
+        return
+      }
     }
 
     await liquidateBorrow(suppliedAsset, value, marketContract, asset)
     await getTokenBalance(tokenContract, asset, !asset.token.tokenAddress)
     setInputValue('')
+    initFunction()
   }
 
   const setMaxInInput = () => {
@@ -734,7 +760,9 @@ const Borrower = ({ user, web3 }: any) => {
                     width: '250px',
                   }}
                   disabled={!disable}
-                  placeholder={`Enter ${borrowedToken?.token.symbol} amount`}
+                  placeholder={`Enter ${
+                    borrowedToken?.token?.symbol || ''
+                  } amount`}
                   value={inputValue}
                   onChange={(e) =>
                     setInputValue(
