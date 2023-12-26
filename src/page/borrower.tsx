@@ -637,9 +637,9 @@ const Borrower = ({ user, web3 }: any) => {
       asset,
       !asset.token.tokenAddress
     )
-    const isMainToken = asset.token.tokenAddress
+    const isToken = !!asset.token.tokenAddress
 
-    if (!isMainToken) {
+    if (isToken) {
       let allowance = 0
 
       try {
