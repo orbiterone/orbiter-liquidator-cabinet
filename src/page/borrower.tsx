@@ -487,6 +487,10 @@ const Borrower = ({ user, web3 }: any) => {
           .liquidateBorrow(userAddress, asset.token.oTokenAddress)
           .estimateGas({
             from: user.address,
+            value: toBn(
+              `${value}`,
+              borrowedAsset.token.tokenDecimal
+            ).toString(),
           })
 
         gasLimit = +gasLimit
