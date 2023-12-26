@@ -637,23 +637,27 @@ const Borrower = ({ user, web3 }: any) => {
       asset,
       !asset.token.tokenAddress
     )
-    let allowance = 0
+    const isMainToken = !asset.token.tokenAddress
 
-    try {
-      const result = await tokenContract.methods
-        .allowance(user.address, asset.token.oTokenAddress)
-        .call()
+    if (!isMainToken) {
+      let allowance = 0
 
-      allowance = +fromBn(result, borrowedToken.token.tokenDecimal).toString()
-    } catch (error) {
-      return
-    }
-
-    if (asset.token.tokenAddress && +allowance < +value) {
       try {
-        await approve(asset, value, tokenContract)
-      } catch (e) {
+        const result = await tokenContract.methods
+          .allowance(user.address, asset.token.oTokenAddress)
+          .call()
+
+        allowance = +fromBn(result, borrowedToken.token.tokenDecimal).toString()
+      } catch (error) {
         return
+      }
+
+      if (+allowance < +value) {
+        try {
+          await approve(asset, value, tokenContract)
+        } catch (e) {
+          return
+        }
       }
     }
 

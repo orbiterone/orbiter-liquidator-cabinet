@@ -225,6 +225,7 @@ const TableOverview = () => {
           position: ['bottomCenter'],
           total: overview.countItem,
           current: +searchParams.get('page') || 1,
+          showSizeChanger: false,
         }}
         onChange={handleTableChange}
         size="small"
